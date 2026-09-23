@@ -22,7 +22,11 @@ prototipo/index.html                 protótipo navegável (1 ficheiro, 0 depend
 ## Custo até aqui
 0 €. Custo previsto do piloto: 0 €/mês (Expo Go + Supabase free). Lojas de aplicações só depois do piloto, se compensar.
 
-## O que falta decidir (bloqueia a Fase 2)
-1. Vila, concelho, distrito e nome definitivo
-2. Registo por email ou telemóvel (recomendação: email no piloto)
-3. Quem são os moderadores locais
+## Decidido (23/09/2026)
+1. **Vila Pouca de Aguiar, Vila Real** — 14 freguesias já no protótipo; nome «Troca da Terra» mantém-se por agora
+2. **Registo por email+palavra-passe** no piloto (SMS custa por mensagem; campo do telefone já preparado) — ver `docs/06_REGISTO_E_PAPEIS.md`
+3. **Moderadores: pai e mãe** — são também utilizadores com produtos; mais 8–15 vizinhos verificados
+
+## Ainda por decidir
+- Confirmar a data da Feira das Cebolas (25–26 set) e se os teus pais lá vão fazer a Fase 0
+- Queijo fresco/requeijão: dentro ou fora do piloto (recomendação: fora)

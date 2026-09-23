@@ -27,7 +27,14 @@ Tudo o resto (mapas, créditos, pagamentos, leilões, IA) fica de fora do MVP, c
 5. O fundador (CEO) é o responsável legal pelos dados nesta fase; não há empresa registada.
 6. Os produtos são trocados **entre as pessoas**; a plataforma nunca fica no meio (não guarda, não transporta, não garante qualidade).
 
-## 3. As 3 perguntas que bloqueiam mesmo o início
+## 3. As 3 perguntas que bloqueiam mesmo o início — **RESPONDIDAS 23/09** ✅
+
+> 1. **Vila Pouca de Aguiar · Vila Real** (14 freguesias no protótipo; nome mantém-se).
+> 2. **Email + palavra-passe** no piloto — detalhe em `06_REGISTO_E_PAPEIS.md`.
+> 3. **Pai e mãe** como moderadores *e* utilizadores com produtos; mais vizinhos.
+>
+> Pesquisa da região: `05_PRODUTOS_DA_REGIAO.md`.
+
 
 (O prompt limita a três. Cada uma tem a minha recomendação — podes responder só «ok» a todas.)
 

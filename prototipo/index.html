@@ -106,7 +106,7 @@ nav.fundo button.on{color:var(--campo);font-weight:600}
 <div class="app">
   <header class="topo">
     <button class="voltar" id="btnVoltar" onclick="voltar()" style="display:none" aria-label="Voltar">‹</button>
-    <h1 id="tituloTopo">Troca da Terra<span class="sub" id="subTopo">[A NOSSA VILA]</span></h1>
+    <h1 id="tituloTopo">Troca da Terra<span class="sub" id="subTopo">Vila Pouca de Aguiar</span></h1>
   </header>
   <main id="ecra"></main>
   <nav class="fundo" id="navFundo">
@@ -123,23 +123,40 @@ nav.fundo button.on{color:var(--campo);font-weight:600}
    PROTÓTIPO — dados FICTÍCIOS, só para ver e clicar.
    Não há base de dados, não há contas reais, nada é guardado.
    ============================================================ */
-const EU = { nome:"Rui", localidade:"[A NOSSA VILA]", verificado:true, estrelas:5.0, trocas:3 };
+const VILA = "Vila Pouca de Aguiar";
+const FREGUESIAS = ["Alfarela de Jales","Alvão","Bornes de Aguiar","Bragado","Capeludos",
+  "Pensalvos e Parada de Monteiros","Sabroso de Aguiar","Soutelo de Aguiar","Telões",
+  "Tresminas","Valoura","Vila Pouca de Aguiar","Vreia de Bornes","Vreia de Jales"];
+const CATEGORIAS = ["Hortícolas e legumes","Fruta e frutos secos","Castanha e cogumelos",
+  "Mel e compotas","Ovos","Sementes, mudas e plantas","Azeite, cereais e farinhas",
+  "Lenha e monte","Ajuda e ferramentas"];
+
+const EU = { nome:"Rui", localidade:"Telões", verificado:true, estrelas:5.0, trocas:3 };
 
 const ANUNCIOS = [
-  { id:1, emoji:"🥚", titulo:"Ovos caseiros", dono:"D. Amélia", verif:true, loc:"Centro da vila",
-    qtd:"3 dúzias", estado:"Frescos, desta semana", quer:"Batata ou couves", dist:"a 300 m", cat:"Ovos",
+  { id:1, emoji:"🌰", titulo:"Castanha da Padrela", dono:"Sr. Joaquim", verif:true, loc:"Tresminas",
+    qtd:"40 kg", estado:"Apanhada esta semana", quer:"Batata, feijão ou ajuda na apanha", dist:"a 3 km", cat:"Castanha e cogumelos",
+    desc:"Castanha grada, já escolhida. Tenho de mais do que consigo escoar — antes trocar do que estragar." },
+  { id:2, emoji:"🧅", titulo:"Cebola da feira", dono:"D. Amélia", verif:true, loc:"Vila Pouca de Aguiar",
+    qtd:"15 kg", estado:"Colhida em setembro", quer:"Ovos, mel ou couves", dist:"a 800 m", cat:"Hortícolas e legumes",
+    desc:"Sobrou da Feira das Cebolas. Boa para guardar, está bem seca." },
+  { id:3, emoji:"🥚", titulo:"Ovos caseiros", dono:"D. Rosa", verif:true, loc:"Telões",
+    qtd:"3 dúzias", estado:"Frescos, desta semana", quer:"Batata ou castanha", dist:"a 300 m", cat:"Ovos",
     desc:"Galinhas do quintal, soltas. Apanhados de manhã. Levo à porta se for aqui perto." },
-  { id:2, emoji:"🥔", titulo:"Batata da horta", dono:"Sr. Joaquim", verif:true, loc:"Quinta de baixo",
-    qtd:"20 kg", estado:"Colhida em setembro", quer:"Ovos, mel ou ajuda na lenha", dist:"a 1,2 km", cat:"Frutas e legumes",
-    desc:"Batata branca, boa para cozer. Tenho de mais, não quero que se estrague." },
-  { id:3, emoji:"🍯", titulo:"Mel do monte", dono:"Tó da Serra", verif:false, loc:"Serra",
-    qtd:"4 frascos de 500 g", estado:"Colheita deste ano", quer:"Compotas ou azeite", dist:"a 4 km", cat:"Mel",
-    desc:"Mel multifloral, não filtrado. Troco por compotas caseiras ou azeite da região." },
-  { id:4, emoji:"🪵", titulo:"Lenha de pinho", dono:"Manuel", verif:true, loc:"Estrada nova",
-    qtd:"1 carrada", estado:"Seca, cortada em março", quer:"Ajuda na poda ou legumes", dist:"a 2 km", cat:"Lenha",
+  { id:4, emoji:"🍯", titulo:"Mel do monte", dono:"Tó da Serra", verif:false, loc:"Alvão",
+    qtd:"4 frascos de 500 g", estado:"Colheita deste ano", quer:"Compotas ou azeite", dist:"a 9 km", cat:"Mel e compotas",
+    desc:"Mel multifloral da serra, não filtrado. Troco por compotas caseiras ou azeite da região." },
+  { id:5, emoji:"🍄", titulo:"Cogumelos do souto", dono:"Manuel", verif:true, loc:"Soutelo de Aguiar",
+    qtd:"2 kg frescos", estado:"Apanhados ontem", quer:"Abóbora, marmelo ou nozes", dist:"a 5 km", cat:"Castanha e cogumelos",
+    desc:"Míscaros do souto. Duram poucos dias — quem quiser tem de vir esta semana." },
+  { id:6, emoji:"🪵", titulo:"Lenha de carvalho", dono:"Sr. Álvaro", verif:true, loc:"Bragado",
+    qtd:"1 carrada", estado:"Seca, cortada em março", quer:"Ajuda na poda ou legumes", dist:"a 6 km", cat:"Lenha e monte",
     desc:"Já rachada. Quem levar tem de trazer carrinha — não faço transporte." },
-  { id:5, emoji:"🌿", titulo:"Mudas de couve", dono:"D. Amélia", verif:true, loc:"Centro da vila",
-    qtd:"30 mudas", estado:"Prontas a plantar", quer:"Sementes ou ovos", dist:"a 300 m", cat:"Sementes e mudas",
+  { id:7, emoji:"💪", titulo:"Tarde de ajuda na apanha", dono:"Nuno", verif:true, loc:"Vreia de Jales",
+    qtd:"4 horas", estado:"Sábados de outubro", quer:"Castanha ou batata", dist:"a 7 km", cat:"Ajuda e ferramentas",
+    desc:"Tenho costas boas e disponibilidade aos sábados. Ajudo na apanha da castanha, levo o meu ancinho." },
+  { id:8, emoji:"🌿", titulo:"Mudas de couve", dono:"D. Rosa", verif:true, loc:"Telões",
+    qtd:"30 mudas", estado:"Prontas a plantar", quer:"Sementes ou mel", dist:"a 300 m", cat:"Sementes, mudas e plantas",
     desc:"Couve portuguesa. Dou 30, ficam boas se plantadas esta semana." },
 ];
 
@@ -172,13 +189,13 @@ function desenhar(){
   document.getElementById("navFundo").style.display = PRINCIPAIS.includes(ecraAtual) ? "flex" : "none";
   document.querySelectorAll("nav.fundo button").forEach(b =>
     b.classList.toggle("on", b.dataset.t === ecraAtual));
-  const t = TITULOS[ecraAtual] || {t:"Troca da Terra", s:"[A NOSSA VILA]"};
+  const t = TITULOS[ecraAtual] || {t:"Troca da Terra", s:VILA};
   document.getElementById("tituloTopo").childNodes[0].nodeValue = t.t;
   document.getElementById("subTopo").textContent = t.s;
 }
 
 const TITULOS = {
-  inicio:{t:"Troca da Terra", s:"[A NOSSA VILA]"},
+  inicio:{t:"Troca da Terra", s:VILA},
   procurar:{t:"Procurar", s:"o que há na vila"},
   publicar:{t:"Publicar", s:"o que tens a mais"},
   trocas:{t:"As minhas trocas", s:"recebidas e enviadas"},
@@ -199,6 +216,7 @@ inicio: () => `
   <p class="legenda">Produtos que vizinhos publicaram nos últimos dias.</p>
   ${ANUNCIOS.slice(0,4).map(cartaoAnuncio).join("")}
   <button class="btn terra" onclick="ir('publicar')">➕ Tenho alguma coisa para trocar</button>
+  <p class="rodape">Feira das Cebolas · 25 e 26 de setembro<br>Mostra Gastronómica «Cabrito, Castanha e Cogumelos» · início de novembro</p>
   <p class="rodape">Protótipo com exemplos fictícios.<br>Nada aqui é uma conta ou um produto real.</p>`,
 
 procurar: () => `
@@ -206,8 +224,7 @@ procurar: () => `
   <input id="q" placeholder="ex.: ovos, batata, lenha…" oninput="filtrar()">
   <label for="cat">Categoria</label>
   <select id="cat" onchange="filtrar()">
-    <option>Todas</option><option>Ovos</option><option>Frutas e legumes</option>
-    <option>Mel</option><option>Lenha</option><option>Sementes e mudas</option>
+    <option>Todas</option>${CATEGORIAS.map(c=>`<option>${c}</option>`).join("")}
   </select>
   <div class="sep"></div>
   <div id="resultados">${ANUNCIOS.map(cartaoAnuncio).join("")}</div>`,
@@ -217,20 +234,22 @@ publicar: () => `
   <h2>O que tens para trocar?</h2>
   <p class="legenda">Três coisas bastam: o que é, quanto tens, e o que queres em troca.</p>
   <label for="t">O que é</label>
-  <input id="t" placeholder="ex.: Ovos caseiros">
+  <input id="t" placeholder="ex.: Castanha, cebola, ovos, lenha…">
   <label for="c">Categoria</label>
-  <select id="c"><option>Ovos</option><option>Frutas e legumes</option><option>Mel</option>
-    <option>Lenha</option><option>Sementes e mudas</option><option>Compotas e conservas</option></select>
+  <select id="c">${CATEGORIAS.map(c=>`<option>${c}</option>`).join("")}</select>
+  <label for="fr">Freguesia</label>
+  <select id="fr">${FREGUESIAS.map(f=>`<option${f===EU.localidade?" selected":""}>${f}</option>`).join("")}</select>
+  <p class="ajuda">Mostramos só a freguesia e uma distância aproximada. A tua morada nunca aparece.</p>
   <label for="qt">Quantidade</label>
   <div class="linha" style="gap:8px">
     <input id="qt" placeholder="3" style="flex:1">
-    <select id="un" style="flex:1"><option>dúzias</option><option>kg</option><option>unidades</option>
+    <select id="un" style="flex:1"><option>kg</option><option>dúzias</option><option>unidades</option>
       <option>litros</option><option>frascos</option><option>caixas</option></select>
   </div>
   <label for="w">O que queres em troca</label>
-  <input id="w" placeholder="ex.: batata, couves, ajuda na horta">
+  <input id="w" placeholder="ex.: batata, feijão, ajuda na apanha">
   <label for="d">Descrição (opcional)</label>
-  <textarea id="d" placeholder="Frescos, apanhados hoje de manhã."></textarea>
+  <textarea id="d" placeholder="Castanha grada, já escolhida. Apanhada esta semana."></textarea>
   <label>Fotografias</label>
   <button class="btn secundario" onclick="alert('No protótipo não há câmara.\\nNa aplicação: até 5 fotos, encolhidas antes de enviar para gastar poucos dados.')">📷 Juntar fotografia</button>
   <div class="aviso">Publicas em nome próprio. És tu o responsável pelo produto, pela origem e pelo estado em que está.</div>
@@ -266,7 +285,7 @@ perfil: () => `
       <div class="foto">👤</div>
       <div>
         <p class="titulo">${EU.nome}</p>
-        <p class="meta">${EU.localidade}</p>
+        <p class="meta">${EU.localidade} · ${VILA}</p>
         <p class="verificado">✔ Verificado localmente</p>
         <p class="meta">${"⭐".repeat(5)} ${EU.estrelas.toFixed(1)} · ${EU.trocas} trocas concluídas</p>
       </div>
@@ -287,7 +306,7 @@ anuncio: () => { const a = ANUNCIOS.find(x => x.id === contexto.anuncio) || ANUN
     <p style="margin:12px 0 0">${a.desc}</p>
     <div class="sep"></div>
     <p class="meta">De <b>${a.dono}</b> ${a.verif?'<span class="verificado">✔ verificado</span>':'<span class="et alerta">ainda não verificado</span>'}</p>
-    <p class="meta">${a.loc} · ${a.dist}</p>
+    <p class="meta">${a.loc} · ${a.dist} · ${VILA}</p>
     <p class="quer">Quer em troca: <b>${a.quer}</b></p>
   </div>
   <div class="aviso">A localização exata não é mostrada. Combinem o local de entrega pela conversa, num sítio onde se sintam à vontade.</div>
@@ -303,7 +322,8 @@ propor: () => { const a = ANUNCIOS.find(x => x.id === contexto.anuncio) || ANUNC
   <select id="of">
     <option>Ovos caseiros — 2 dúzias</option>
     <option>Compota de abóbora — 3 frascos</option>
-    <option>Uma tarde de ajuda na horta</option>
+    <option>Batata de montanha — 10 kg</option>
+    <option>Uma tarde de ajuda na apanha</option>
   </select>
   <label for="qp">Quanto queres dele</label>
   <input id="qp" placeholder="ex.: 10 kg">

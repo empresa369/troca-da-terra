@@ -1,0 +1,602 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#3d5a3a">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icone-192.png">
+<link rel="apple-touch-icon" href="icone-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Troca da Terra">
+<title>Troca da Terra — Vila Pouca de Aguiar</title>
+<style>
+:root{
+  --terra:#8a5a33; --campo:#3d5a3a; --campo2:#4f7449; --trigo:#d9a441;
+  --fundo:#faf7f1; --carta:#fff; --linha:#e4ddcf;
+  --tx:#231f1a; --mut:#6d655a; --ok:#2f7a4f; --alerta:#b4472a; --r:14px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--fundo);color:var(--tx);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  font-size:18px;line-height:1.55;-webkit-text-size-adjust:100%}
+.app{max-width:520px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
+header.topo{position:sticky;top:0;z-index:20;background:var(--campo);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:12px}
+header.topo h1{font-size:19px;margin:0;font-weight:600}
+header.topo .sub{font-size:13px;opacity:.85;display:block;font-weight:400}
+.voltar{background:rgba(255,255,255,.15);border:0;color:#fff;font-size:22px;width:40px;height:40px;border-radius:10px;cursor:pointer}
+main{flex:1;padding:16px 16px 100px}
+h2{font-size:21px;margin:0 0 4px}
+.legenda{color:var(--mut);font-size:15px;margin:0 0 18px}
+.cartao{background:var(--carta);border:1px solid var(--linha);border-radius:var(--r);padding:14px;margin-bottom:14px}
+.cartao.clicavel{cursor:pointer}.cartao.clicavel:active{background:#f4efe6}
+.linha{display:flex;gap:12px;align-items:flex-start}
+.foto{width:84px;height:84px;border-radius:10px;flex:0 0 84px;display:flex;align-items:center;justify-content:center;
+  font-size:38px;background:#efe8d9;overflow:hidden}
+.foto img{width:100%;height:100%;object-fit:cover}
+.titulo{font-weight:600;font-size:17px;margin:0 0 2px}
+.meta{color:var(--mut);font-size:14px;margin:0}
+.quer{font-size:14px;margin:6px 0 0}.quer b{color:var(--campo)}
+.et{display:inline-block;font-size:13px;padding:3px 10px;border-radius:999px;background:#eef3ec;color:var(--campo);border:1px solid #d8e3d5;margin:2px 4px 2px 0}
+.et.trigo{background:#fdf4e0;color:#8a6414;border-color:#f0e0bb}
+.et.ok{background:#e9f6ee;color:var(--ok);border-color:#cbe8d7}
+.et.alerta{background:#fbeceb;color:var(--alerta);border-color:#f2d3cf}
+.et.sel{background:var(--campo);color:#fff;border-color:var(--campo)}
+.verificado{color:var(--ok);font-weight:600;font-size:14px}
+.btn{display:block;width:100%;padding:16px;border-radius:12px;border:0;font-size:18px;font-weight:600;
+  background:var(--campo);color:#fff;cursor:pointer;margin:10px 0;text-align:center;font-family:inherit}
+.btn:active{background:var(--campo2)}
+.btn.secundario{background:#fff;color:var(--campo);border:2px solid var(--campo)}
+.btn.terra{background:var(--terra)}
+.btn.perigo{background:#fff;color:var(--alerta);border:2px solid var(--alerta)}
+.btn:disabled{opacity:.45}
+.btn-linha{display:flex;gap:10px}
+label{display:block;font-weight:600;font-size:15px;margin:14px 0 6px}
+input,select,textarea{width:100%;padding:14px;font-size:17px;border:2px solid var(--linha);border-radius:10px;
+  background:#fff;font-family:inherit;color:var(--tx)}
+input:focus,select:focus,textarea:focus{outline:3px solid #cddcc9;border-color:var(--campo)}
+textarea{min-height:90px;resize:vertical}
+.ajuda{font-size:14px;color:var(--mut);margin:6px 0 0}
+.erro{color:var(--alerta);font-size:14px;font-weight:600;margin:6px 0 0}
+nav.fundo{position:fixed;bottom:0;left:0;right:0;z-index:20;background:#fff;border-top:1px solid var(--linha);
+  display:flex;max-width:520px;margin:0 auto;padding-bottom:env(safe-area-inset-bottom)}
+nav.fundo button{flex:1;border:0;background:none;padding:10px 4px 12px;font-size:12px;color:var(--mut);cursor:pointer;font-family:inherit}
+nav.fundo button .ic{display:block;font-size:24px;line-height:1.2}
+nav.fundo button.on{color:var(--campo);font-weight:600}
+.aviso{background:#fdf4e0;border:1px solid #f0e0bb;border-radius:12px;padding:12px 14px;font-size:15px;margin:0 0 16px}
+.aviso.forte{background:#fbeceb;border-color:#f2d3cf}
+.aviso.verde{background:#e9f6ee;border-color:#cbe8d7}
+.bolha{max-width:80%;padding:11px 14px;border-radius:14px;margin:8px 0;font-size:16px}
+.bolha.eu{background:var(--campo);color:#fff;margin-left:auto;border-bottom-right-radius:4px}
+.bolha.ele{background:#fff;border:1px solid var(--linha);border-bottom-left-radius:4px}
+.hora{font-size:12px;color:var(--mut);margin:2px 4px 10px}.hora.eu{text-align:right}
+.estrelas{display:flex;gap:8px;justify-content:center;margin:14px 0}
+.estrelas button{font-size:40px;background:none;border:0;cursor:pointer;filter:grayscale(1);opacity:.4;padding:0}
+.estrelas button.on{filter:none;opacity:1}
+.centro{text-align:center}.grande{font-size:56px;text-align:center;margin:18px 0 6px}
+.rodape{font-size:13px;color:var(--mut);text-align:center;padding:18px 8px 0;line-height:1.5}
+.sep{height:1px;background:var(--linha);margin:18px 0}
+.miniaturas{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.miniaturas img{width:72px;height:72px;object-fit:cover;border-radius:8px;border:1px solid var(--linha)}
+.vazio{text-align:center;color:var(--mut);padding:30px 10px}
+.vazio .ic{font-size:52px;display:block;margin-bottom:8px}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topo">
+    <button class="voltar" id="btnVoltar" onclick="voltar()" style="display:none" aria-label="Voltar">‹</button>
+    <h1 id="tituloTopo">Troca da Terra<span class="sub" id="subTopo">Vila Pouca de Aguiar</span></h1>
+  </header>
+  <main id="ecra"></main>
+  <nav class="fundo" id="navFundo">
+    <button data-t="inicio" onclick="ir('inicio')"><span class="ic">🏡</span>Início</button>
+    <button data-t="procurar" onclick="ir('procurar')"><span class="ic">🔎</span>Procurar</button>
+    <button data-t="publicar" onclick="ir('publicar')"><span class="ic">➕</span>Publicar</button>
+    <button data-t="trocas" onclick="ir('trocas')"><span class="ic">🤝</span>Trocas</button>
+    <button data-t="perfil" onclick="ir('perfil')"><span class="ic">👤</span>Perfil</button>
+  </nav>
+</div>
+
+<script>
+/* ===========================================================================
+   TROCA DA TERRA — versão de campo (Fase 1.5)
+   Guarda mesmo no telemóvel (localStorage). Funciona sem internet.
+   Não envia nada para lado nenhum. Tudo o que for recolhido pode ser
+   exportado em Perfil → Guardar cópia, para não se perder na passagem
+   para a aplicação a sério.
+   =========================================================================== */
+const VILA = "Vila Pouca de Aguiar";
+const FREGUESIAS = ["Alfarela de Jales","Alvão","Bornes de Aguiar","Bragado","Capeludos",
+  "Pensalvos e Parada de Monteiros","Sabroso de Aguiar","Soutelo de Aguiar","Telões",
+  "Tresminas","Valoura","Vila Pouca de Aguiar","Vreia de Bornes","Vreia de Jales"];
+const CATEGORIAS = [
+  {n:"Hortícolas e legumes", e:"🥬"}, {n:"Fruta e frutos secos", e:"🍐"},
+  {n:"Castanha e cogumelos", e:"🌰"}, {n:"Mel e compotas", e:"🍯"},
+  {n:"Ovos", e:"🥚"}, {n:"Sementes, mudas e plantas", e:"🌿"},
+  {n:"Azeite, cereais e farinhas", e:"🫒"}, {n:"Lenha e monte", e:"🪵"},
+  {n:"Ajuda e ferramentas", e:"💪"},
+];
+const UNIDADES = ["kg","dúzias","unidades","litros","frascos","caixas","sacos","carradas","horas"];
+const CHAVE = "troca-da-terra-v1";
+
+/* ---------------------------------------------------------------- estado -- */
+const VAZIO = { eu:null, anuncios:[], trocas:[], seq:1 };
+let D = carregar();
+
+function carregar(){
+  try{ const s = localStorage.getItem(CHAVE); if(s) return Object.assign({}, VAZIO, JSON.parse(s)); }
+  catch(e){ console.warn("sem armazenamento", e); }
+  return JSON.parse(JSON.stringify(VAZIO));
+}
+function guardar(){
+  try{ localStorage.setItem(CHAVE, JSON.stringify(D)); }
+  catch(e){ alert("Não consegui guardar neste telemóvel.\nSe estiveres em janela privada, fecha e abre normalmente."); }
+}
+const id = () => D.seq++;
+const hoje = () => new Date().toISOString();
+function quando(iso){
+  const d = Math.floor((Date.now() - new Date(iso)) / 86400000);
+  return d <= 0 ? "hoje" : d === 1 ? "ontem" : "há " + d + " dias";
+}
+const emojiCat = n => (CATEGORIAS.find(c => c.n === n) || {e:"🧺"}).e;
+
+/* ------------------------------------------------------------- navegação -- */
+let ecraAtual = "inicio", pilha = [], ctx = {};
+const PRINCIPAIS = ["inicio","procurar","publicar","trocas","perfil"];
+function ir(nome, c){
+  if(c) ctx = Object.assign({}, ctx, c);
+  if(ecraAtual !== nome) pilha.push(ecraAtual);
+  ecraAtual = nome; desenhar(); window.scrollTo(0,0);
+}
+function voltar(){ ecraAtual = pilha.pop() || "inicio"; desenhar(); window.scrollTo(0,0); }
+const TITULOS = {
+  inicio:{t:"Troca da Terra", s:VILA}, procurar:{t:"Procurar", s:"o que há na vila"},
+  publicar:{t:"Publicar", s:"o que tens a mais"}, trocas:{t:"As minhas trocas", s:"recebidas e enviadas"},
+  perfil:{t:"O meu perfil", s:""}, entrada:{t:"Troca da Terra", s:VILA},
+  anuncio:{t:"Anúncio", s:""}, propor:{t:"Propor troca", s:""}, conversa:{t:"Conversa", s:"sobre esta troca"},
+  confirmar:{t:"Confirmar troca", s:"os dois têm de confirmar"}, avaliar:{t:"Avaliar", s:"como correu?"},
+  moderacao:{t:"Moderação local", s:"só para moderadores"}, regras:{t:"Regras", s:"e privacidade"},
+};
+function desenhar(){
+  if(!D.eu && ecraAtual !== "entrada"){ ecraAtual = "entrada"; pilha = []; }
+  document.getElementById("ecra").innerHTML = (ECRAS[ecraAtual] || ECRAS.inicio)();
+  const principal = PRINCIPAIS.includes(ecraAtual);
+  document.getElementById("btnVoltar").style.display = principal || ecraAtual==="entrada" ? "none" : "block";
+  document.getElementById("navFundo").style.display = D.eu && principal ? "flex" : "none";
+  document.querySelectorAll("nav.fundo button").forEach(b => b.classList.toggle("on", b.dataset.t === ecraAtual));
+  const t = TITULOS[ecraAtual] || TITULOS.inicio;
+  document.getElementById("tituloTopo").childNodes[0].nodeValue = t.t;
+  document.getElementById("subTopo").textContent = ecraAtual === "perfil" && D.eu ? D.eu.nome : t.s;
+}
+
+/* ----------------------------------------------------------------- ecrãs -- */
+const ECRAS = {
+
+entrada: () => `
+  <div class="grande">🌾</div>
+  <h2 class="centro">Troca da Terra</h2>
+  <p class="legenda centro">O que sobra a uns faz falta a outros.<br>Aqui vês o que os vizinhos têm e propões uma troca.<br><b>Sem dinheiro. Só troca direta.</b></p>
+  <div class="cartao">
+    <label for="n">Como te chamas</label>
+    <input id="n" placeholder="ex.: Joaquim Pereira" autocomplete="name">
+    <label for="f">De que freguesia és</label>
+    <select id="f">${FREGUESIAS.map(f=>`<option${f==="Telões"?" selected":""}>${f}</option>`).join("")}</select>
+    <p id="erroEntrada" class="erro" style="display:none">Escreve o teu nome para continuar.</p>
+  </div>
+  <div class="aviso">Nesta versão fica tudo guardado <b>só neste telemóvel</b>. Não enviamos nada para a internet nem pedimos email.</div>
+  <button class="btn" onclick="entrar()">Entrar</button>
+  <p class="rodape">Vila Pouca de Aguiar · Vila Real<br>Maiores de 18 anos</p>`,
+
+inicio: () => {
+  const outros = D.anuncios.filter(a => a.dono !== D.eu.nome && a.estado === "publicado");
+  const meus = D.anuncios.filter(a => a.dono === D.eu.nome);
+  return `
+  <h2>O que há na vila</h2>
+  <p class="legenda">${D.anuncios.length ? D.anuncios.length + " anúncio(s) nesta aplicação." : "Ainda não há nada publicado."}</p>
+  ${D.anuncios.length === 0 ? `
+    <div class="vazio"><span class="ic">🧺</span>
+      Sê o primeiro.<br>Publica o que tens a mais e mostra aos vizinhos.
+    </div>` : D.anuncios.filter(a=>a.estado==="publicado").map(cartaoAnuncio).join("")}
+  <button class="btn terra" onclick="ir('publicar')">➕ Tenho alguma coisa para trocar</button>
+  ${meus.length ? `<p class="rodape">Tens ${meus.length} anúncio(s) publicado(s).</p>` : ""}
+  <p class="rodape">Feira das Cebolas · 25 e 26 de setembro<br>Mostra Gastronómica «Cabrito, Castanha e Cogumelos» · novembro</p>`;
+},
+
+procurar: () => `
+  <label for="q">Procurar</label>
+  <input id="q" placeholder="ex.: castanha, ovos, lenha…" oninput="filtrar()">
+  <label for="cat">Categoria</label>
+  <select id="cat" onchange="filtrar()">
+    <option>Todas</option>${CATEGORIAS.map(c=>`<option>${c.n}</option>`).join("")}
+  </select>
+  <label for="fre">Freguesia</label>
+  <select id="fre" onchange="filtrar()">
+    <option>Todas</option>${FREGUESIAS.map(f=>`<option>${f}</option>`).join("")}
+  </select>
+  <div class="sep"></div>
+  <div id="resultados">${listaFiltrada("", "Todas", "Todas")}</div>`,
+
+publicar: () => `
+  <h2>O que tens para trocar?</h2>
+  <p class="legenda">Três coisas bastam: o que é, quanto tens, e o que queres em troca.</p>
+  <label for="t">O que é</label>
+  <input id="t" placeholder="ex.: Castanha, cebola, ovos, lenha…">
+  <label for="c">Categoria</label>
+  <select id="c">${CATEGORIAS.map(c=>`<option>${c.e} ${c.n}</option>`).join("")}</select>
+  <label for="fr">Freguesia</label>
+  <select id="fr">${FREGUESIAS.map(f=>`<option${f===D.eu.freguesia?" selected":""}>${f}</option>`).join("")}</select>
+  <p class="ajuda">Mostramos só a freguesia. A tua morada nunca aparece.</p>
+  <label for="qt">Quantidade</label>
+  <div class="linha" style="gap:8px">
+    <input id="qt" inputmode="decimal" placeholder="10" style="flex:1">
+    <select id="un" style="flex:1">${UNIDADES.map(u=>`<option>${u}</option>`).join("")}</select>
+  </div>
+  <label for="w">O que queres em troca</label>
+  <input id="w" placeholder="ex.: batata, feijão, ajuda na apanha">
+  <label for="d">Descrição (opcional)</label>
+  <textarea id="d" placeholder="Castanha grada, já escolhida. Apanhada esta semana."></textarea>
+  <label for="fotos">Fotografias (até 3)</label>
+  <input id="fotos" type="file" accept="image/*" multiple capture="environment" onchange="lerFotos(this)">
+  <div class="miniaturas" id="mini"></div>
+  <p class="ajuda">As fotografias ficam encolhidas para não gastar espaço nem dados.</p>
+  <div class="aviso">Publicas em nome próprio. És tu o responsável pelo produto, pela origem e pelo estado em que está. Se for comida caseira, diz os ingredientes.</div>
+  <p id="erroPublicar" class="erro" style="display:none"></p>
+  <button class="btn" onclick="publicar()">Publicar na vila</button>`,
+
+publicado: () => `
+  <div class="grande">✅</div>
+  <h2 class="centro">Publicado</h2>
+  <p class="legenda centro">Já aparece na lista da vila.<br>Quem quiser pode propor uma troca.</p>
+  <button class="btn" onclick="ir('inicio')">Ver na lista</button>
+  <button class="btn secundario" onclick="ir('publicar')">Publicar outro</button>`,
+
+anuncio: () => { const a = D.anuncios.find(x => x.id === ctx.anuncio); if(!a) return `<p class="vazio">Anúncio não encontrado.</p>`;
+  const meu = a.dono === D.eu.nome; return `
+  <div class="cartao">
+    ${a.fotos && a.fotos.length ? `<img src="${a.fotos[0]}" style="width:100%;border-radius:10px;max-height:240px;object-fit:cover">`
+      : `<div class="foto" style="width:100%;height:150px;font-size:70px">${emojiCat(a.categoria)}</div>`}
+    <h2 style="margin-top:12px">${escapar(a.titulo)}</h2>
+    <p class="meta">${escapar(a.quantidade)} ${escapar(a.unidade)} · ${quando(a.criado)}</p>
+    ${a.descricao ? `<p style="margin:12px 0 0">${escapar(a.descricao)}</p>` : ""}
+    ${a.fotos && a.fotos.length > 1 ? `<div class="miniaturas">${a.fotos.slice(1).map(f=>`<img src="${f}">`).join("")}</div>` : ""}
+    <div class="sep"></div>
+    <p class="meta">De <b>${escapar(a.dono)}</b> ${a.verificado ? '<span class="verificado">✔ verificado</span>' : '<span class="et alerta">ainda não verificado</span>'}</p>
+    <p class="meta">${escapar(a.freguesia)} · ${VILA}</p>
+    <p class="quer">Quer em troca: <b>${escapar(a.quer)}</b></p>
+    <span class="et">${emojiCat(a.categoria)} ${escapar(a.categoria)}</span>
+  </div>
+  <div class="aviso">A morada exata não é mostrada. Combinem o local de entrega pela conversa, num sítio onde se sintam à vontade.</div>
+  ${meu ? `
+    <button class="btn secundario" onclick="alterarEstado(${a.id},'reservado')">Marcar como reservado</button>
+    <button class="btn perigo" onclick="apagarAnuncio(${a.id})">Apagar este anúncio</button>`
+  : `
+    <button class="btn" onclick="ir('propor',{anuncio:${a.id}})">🤝 Propor uma troca</button>
+    <button class="btn perigo" onclick="alert('Obrigado. O moderador local vai ver esta denúncia.')">Denunciar</button>`}`;
+},
+
+propor: () => { const a = D.anuncios.find(x => x.id === ctx.anuncio); if(!a) return "";
+  const meus = D.anuncios.filter(x => x.dono === D.eu.nome && x.estado === "publicado"); return `
+  <h2>Propor troca</h2>
+  <p class="legenda">Queres <b>${escapar(a.titulo)}</b> de ${escapar(a.dono)}. O que dás em troca?</p>
+  <label for="of">O que ofereces</label>
+  ${meus.length ? `<select id="of">${meus.map(m=>`<option>${escapar(m.titulo)} — ${escapar(m.quantidade)} ${escapar(m.unidade)}</option>`).join("")}<option>Outra coisa (escrevo abaixo)</option></select>`
+    : `<p class="ajuda">Ainda não publicaste nada — escreve em baixo o que ofereces.</p><select id="of" style="display:none"><option>Outra coisa (escrevo abaixo)</option></select>`}
+  <label for="ol">Ou escreve o que ofereces</label>
+  <input id="ol" placeholder="ex.: uma tarde de ajuda na apanha">
+  <label for="qp">Quanto queres dele</label>
+  <input id="qp" placeholder="ex.: 10 kg">
+  <label for="msg">Mensagem</label>
+  <textarea id="msg" placeholder="Boa tarde. Tenho ovos frescos, troco por 10 kg de castanha. Posso passar aí amanhã de manhã."></textarea>
+  <div class="aviso">Não escrevas aqui moradas, números de conta nem códigos.</div>
+  <button class="btn" onclick="enviarProposta(${a.id})">Enviar proposta</button>`;
+},
+
+trocas: () => D.trocas.length ? `
+  <h2>As minhas trocas</h2>
+  <p class="legenda">Toca numa para ver a conversa.</p>
+  ${D.trocas.map(t => `
+    <div class="cartao clicavel" onclick="ir('conversa',{troca:${t.id}})">
+      <div class="linha">
+        <div class="foto">${emojiCat(t.categoria)}</div>
+        <div style="flex:1">
+          <p class="titulo">${escapar(t.com)}</p>
+          <p class="meta">Ele dá: ${escapar(t.pedido)}</p>
+          <p class="meta">Eu dou: ${escapar(t.oferta)}</p>
+          <span class="et ${t.estado==="concluída"?"ok":t.estado==="enviada"?"trigo":""}">${t.estado}</span>
+          <span class="et">${quando(t.criado)}</span>
+        </div>
+      </div>
+    </div>`).join("")}`
+  : `<div class="vazio"><span class="ic">🤝</span>Ainda não há trocas.<br>Vê o que há na vila e propõe uma.</div>
+     <button class="btn" onclick="ir('procurar')">Procurar produtos</button>`,
+
+conversa: () => { const t = D.trocas.find(x => x.id === ctx.troca); if(!t) return ""; return `
+  <div class="cartao">
+    <p class="titulo">${escapar(t.com)}</p>
+    <p class="meta">Ele dá: ${escapar(t.pedido)}</p>
+    <p class="meta">Eu dou: ${escapar(t.oferta)}</p>
+    <span class="et ${t.estado==="concluída"?"ok":"trigo"}">${t.estado}</span>
+  </div>
+  <div class="aviso forte">Nunca partilhes dados bancários, códigos ou palavras-passe. Combina a entrega num local onde te sintas seguro.</div>
+  ${t.mensagens.map(m => `
+    <div class="bolha ${m.eu?"eu":"ele"}">${escapar(m.texto)}</div>
+    <div class="hora ${m.eu?"eu":""}">${quando(m.quando)}</div>`).join("")}
+  <label for="m">Escrever</label>
+  <textarea id="m" placeholder="A tua mensagem…"></textarea>
+  <button class="btn secundario" onclick="enviarMensagem(${t.id})">Enviar mensagem</button>
+  <div class="sep"></div>
+  ${t.estado === "concluída"
+    ? `<div class="aviso verde">Troca concluída. Obrigado — é assim que se constrói confiança na vila.</div>`
+    : `<button class="btn" onclick="ir('confirmar',{troca:${t.id}})">✅ Já trocámos — confirmar</button>
+       <button class="btn perigo" onclick="cancelarTroca(${t.id})">Cancelar troca</button>`}`;
+},
+
+confirmar: () => { const t = D.trocas.find(x => x.id === ctx.troca); if(!t) return ""; return `
+  <h2>Confirmar a troca</h2>
+  <p class="legenda">Cada um confirma do seu lado. Só quando os dois confirmarem é que fica concluída.</p>
+  <div class="cartao">
+    <p class="titulo">Eu (${escapar(D.eu.nome)})</p>
+    <span class="et ${t.confirmeiEu?"ok":"trigo"}">${t.confirmeiEu?"✔ já confirmei":"por confirmar"}</span>
+    <div class="sep"></div>
+    <p class="titulo">${escapar(t.com)}</p>
+    <span class="et ${t.confirmouEle?"ok":"trigo"}">${t.confirmouEle?"✔ confirmou":"ainda não confirmou"}</span>
+  </div>
+  <div class="aviso">Confirma só depois de teres recebido mesmo o produto.</div>
+  <button class="btn" onclick="confirmarTroca(${t.id})" ${t.confirmeiEu?"disabled":""}>Confirmo que a troca foi feita</button>`;
+},
+
+avaliar: () => `
+  <h2>Como correu?</h2>
+  <p class="legenda">Só se avalia depois de uma troca concluída.</p>
+  <div class="estrelas" id="est">${[1,2,3,4,5].map(n=>`<button onclick="estrelas(${n})" aria-label="${n} estrelas">⭐</button>`).join("")}</div>
+  <label>O que correu bem</label>
+  <div id="etiquetas">
+    ${["produto conforme","pessoa pontual","boa comunicação","troca segura"].map(e=>`<span class="et" onclick="this.classList.toggle('sel')">${e}</span>`).join("")}
+  </div>
+  <label for="cm">Comentário (opcional)</label>
+  <textarea id="cm" placeholder="Castanha muito boa, pessoa impecável."></textarea>
+  <p class="ajuda">Os comentários passam pelo moderador local antes de aparecerem.</p>
+  <button class="btn" onclick="ir('avaliado')">Enviar avaliação</button>`,
+
+avaliado: () => `
+  <div class="grande">🌾</div>
+  <h2 class="centro">Obrigado</h2>
+  <p class="legenda centro">A troca ficou registada.</p>
+  <button class="btn" onclick="ir('inicio')">Voltar ao início</button>`,
+
+perfil: () => { const meus = D.anuncios.filter(a => a.dono === D.eu.nome);
+  const feitas = D.trocas.filter(t => t.estado === "concluída").length; return `
+  <div class="cartao">
+    <div class="linha">
+      <div class="foto">👤</div>
+      <div>
+        <p class="titulo">${escapar(D.eu.nome)}</p>
+        <p class="meta">${escapar(D.eu.freguesia)} · ${VILA}</p>
+        ${D.eu.moderador ? '<p class="verificado">🛡️ Moderador local</p>' : ''}
+        <p class="meta">${meus.length} anúncio(s) · ${feitas} troca(s) concluída(s)</p>
+      </div>
+    </div>
+  </div>
+  ${meus.length ? meus.map(cartaoAnuncio).join("") : '<p class="legenda">Ainda não publicaste nada.</p>'}
+  <div class="sep"></div>
+  <button class="btn secundario" onclick="exportar()">💾 Guardar cópia do que recolhi</button>
+  <p class="ajuda">Descarrega um ficheiro com tudo o que está neste telemóvel, para não se perder quando passarmos à aplicação a sério.</p>
+  <button class="btn secundario" onclick="ir('moderacao')">🛡️ Moderação local</button>
+  <button class="btn secundario" onclick="ir('regras')">Regras e privacidade</button>
+  <button class="btn perigo" onclick="apagarTudo()">Apagar tudo deste telemóvel</button>`;
+},
+
+moderacao: () => `
+  <div class="aviso">Este ecrã é para os moderadores locais. Não mostra palavras-passe e não permite concluir trocas por outras pessoas.</div>
+  <h2>Ajudar um vizinho a publicar</h2>
+  <p class="legenda">Com a pessoa ao lado e com o telemóvel dela, ou aqui neste, dizendo de quem é.</p>
+  <label for="mn">Nome de quem tem o produto</label>
+  <input id="mn" placeholder="ex.: D. Rosa Fernandes">
+  <label for="mf">Freguesia</label>
+  <select id="mf">${FREGUESIAS.map(f=>`<option>${f}</option>`).join("")}</select>
+  <label for="mt">O que tem</label>
+  <input id="mt" placeholder="ex.: Nabos e couves">
+  <label for="mq">Quanto</label>
+  <input id="mq" placeholder="ex.: 20 kg">
+  <label for="mw">O que quer em troca</label>
+  <input id="mw" placeholder="ex.: ovos ou batata">
+  <div class="aviso">Só publica com o consentimento da pessoa. Fica registado que foste tu a ajudar.</div>
+  <button class="btn" onclick="publicarAssistido()">Publicar por ela</button>
+  <div class="sep"></div>
+  <h2>Verificados</h2>
+  <p class="legenda">${D.anuncios.filter(a=>a.verificado).length} anúncio(s) de pessoas conhecidas.</p>
+  <p class="rodape">Uma denúncia sozinha nunca bloqueia ninguém.<br>Há sempre uma pessoa a decidir.</p>`,
+
+regras: () => `
+  <h2>Regras da comunidade</h2>
+  <p class="legenda">Curtas, porque são para cumprir.</p>
+  <div class="cartao">
+    <p><b>1.</b> O produto é teu e sabes de onde veio.</p>
+    <p><b>2.</b> Descreves com verdade o que é, quanto é e o estado. Se souberes de alergénios, dizes.</p>
+    <p><b>3.</b> Respeitas as regras do que trocas (alimentar, florestal, fiscal).</p>
+    <p><b>4.</b> Combinas a entrega num sítio seguro. Ninguém é obrigado a dar a morada.</p>
+    <p><b>5.</b> Tratas os outros com respeito. Isto é a tua vila.</p>
+  </div>
+  <h2>Não se troca aqui</h2>
+  <div class="cartao"><p>Animais vivos · carne, cabrito e enchidos · vinho e aguardente · leite cru · medicamentos · pesticidas · armas · tabaco.</p></div>
+  <h2>O que esta aplicação não faz</h2>
+  <div class="cartao">
+    <p>Não vende nem compra. Não há dinheiro.</p>
+    <p>Não fica no meio da troca: não guarda, não transporta, não entrega.</p>
+    <p>Não garante que um produto é seguro ou legal só por estar publicado. Quem publica é o responsável.</p>
+    <p>Não mostra a tua morada exata.</p>
+  </div>
+  <h2>Os teus dados</h2>
+  <div class="cartao">
+    <p>Nesta versão fica <b>tudo guardado só neste telemóvel</b>. Nada é enviado para a internet.</p>
+    <p>Podes apagar tudo a qualquer momento no teu perfil.</p>
+  </div>
+  <p class="rodape">Maiores de 18 anos · Vila Pouca de Aguiar</p>`,
+};
+
+/* ------------------------------------------------------------- ações --- */
+function entrar(){
+  const n = (document.getElementById("n").value || "").trim();
+  if(n.length < 2){ document.getElementById("erroEntrada").style.display = "block"; return; }
+  D.eu = { nome:n, freguesia:document.getElementById("f").value, moderador:false, criado:hoje() };
+  guardar(); ir("inicio");
+}
+
+let fotosTemp = [];
+function lerFotos(input){
+  fotosTemp = []; document.getElementById("mini").innerHTML = "";
+  [...input.files].slice(0,3).forEach(f => {
+    const r = new FileReader();
+    r.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        const max = 900, esc = Math.min(1, max / Math.max(img.width, img.height));
+        const c = document.createElement("canvas");
+        c.width = img.width * esc; c.height = img.height * esc;
+        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+        const dataUrl = c.toDataURL("image/jpeg", 0.65);
+        fotosTemp.push(dataUrl);
+        const m = document.createElement("img"); m.src = dataUrl;
+        document.getElementById("mini").appendChild(m);
+      };
+      img.src = e.target.result;
+    };
+    r.readAsDataURL(f);
+  });
+}
+
+function publicar(){
+  const t = (document.getElementById("t").value||"").trim();
+  const qt = (document.getElementById("qt").value||"").trim();
+  const w = (document.getElementById("w").value||"").trim();
+  const err = document.getElementById("erroPublicar");
+  if(t.length < 3){ err.textContent = "Escreve o que é (pelo menos 3 letras)."; err.style.display="block"; return; }
+  if(!qt){ err.textContent = "Escreve a quantidade."; err.style.display="block"; return; }
+  if(!w){ err.textContent = "Escreve o que queres em troca."; err.style.display="block"; return; }
+  const catRaw = document.getElementById("c").value;
+  D.anuncios.unshift({
+    id:id(), titulo:t, categoria:catRaw.replace(/^\S+\s/,""), freguesia:document.getElementById("fr").value,
+    quantidade:qt, unidade:document.getElementById("un").value, quer:w,
+    descricao:(document.getElementById("d").value||"").trim(), fotos:fotosTemp.slice(),
+    dono:D.eu.nome, verificado:true, estado:"publicado", criado:hoje(), porModerador:null,
+  });
+  fotosTemp = []; guardar(); ir("publicado");
+}
+
+function publicarAssistido(){
+  const n=(document.getElementById("mn").value||"").trim(), t=(document.getElementById("mt").value||"").trim();
+  if(n.length<2 || t.length<3){ alert("Escreve pelo menos o nome da pessoa e o que ela tem."); return; }
+  D.anuncios.unshift({
+    id:id(), titulo:t, categoria:"Hortícolas e legumes", freguesia:document.getElementById("mf").value,
+    quantidade:(document.getElementById("mq").value||"").trim() || "—", unidade:"",
+    quer:(document.getElementById("mw").value||"").trim() || "a combinar",
+    descricao:"", fotos:[], dono:n, verificado:true, estado:"publicado", criado:hoje(),
+    porModerador:D.eu.nome,
+  });
+  guardar(); alert("Publicado em nome de " + n + ".\nFica registado que foste tu a ajudar."); ir("inicio");
+}
+
+function enviarProposta(anuncioId){
+  const a = D.anuncios.find(x => x.id === anuncioId); if(!a) return;
+  const sel = document.getElementById("of"), livre = (document.getElementById("ol").value||"").trim();
+  const oferta = livre || (sel && sel.value !== "Outra coisa (escrevo abaixo)" ? sel.value : "");
+  if(!oferta){ alert("Escreve o que ofereces."); return; }
+  const msg = (document.getElementById("msg").value||"").trim();
+  const pedido = ((document.getElementById("qp").value||"").trim() ? document.getElementById("qp").value.trim()+" de " : "") + a.titulo;
+  D.trocas.unshift({
+    id:id(), anuncio:a.id, com:a.dono, categoria:a.categoria, pedido, oferta,
+    estado:"enviada", criado:hoje(), confirmeiEu:false, confirmouEle:false,
+    mensagens: msg ? [{eu:true, texto:msg, quando:hoje()}] : [],
+  });
+  guardar(); ir("proposta_enviada");
+}
+ECRAS.proposta_enviada = () => `
+  <div class="grande">🤝</div>
+  <h2 class="centro">Proposta enviada</h2>
+  <p class="legenda centro">Fica guardada nas tuas trocas.</p>
+  <button class="btn" onclick="ir('trocas')">Ver as minhas trocas</button>
+  <button class="btn secundario" onclick="ir('inicio')">Voltar ao início</button>`;
+
+function enviarMensagem(trocaId){
+  const t = D.trocas.find(x => x.id === trocaId); if(!t) return;
+  const txt = (document.getElementById("m").value||"").trim(); if(!txt) return;
+  t.mensagens.push({eu:true, texto:txt, quando:hoje()});
+  if(t.estado === "enviada") t.estado = "em negociação";
+  guardar(); desenhar();
+}
+function confirmarTroca(trocaId){
+  const t = D.trocas.find(x => x.id === trocaId); if(!t) return;
+  t.confirmeiEu = true;
+  if(t.confirmouEle){ t.estado = "concluída"; guardar(); ir("avaliar"); }
+  else { t.estado = "à espera do outro"; guardar(); desenhar();
+    alert("Confirmado do teu lado.\nA troca fica concluída quando " + t.com + " também confirmar."); }
+}
+function cancelarTroca(trocaId){
+  if(!confirm("Cancelar esta troca?")) return;
+  D.trocas = D.trocas.filter(x => x.id !== trocaId); guardar(); ir("trocas");
+}
+function alterarEstado(anuncioId, estado){
+  const a = D.anuncios.find(x => x.id === anuncioId); if(!a) return;
+  a.estado = estado; guardar(); alert("Anúncio marcado como " + estado + "."); ir("inicio");
+}
+function apagarAnuncio(anuncioId){
+  if(!confirm("Apagar este anúncio?")) return;
+  D.anuncios = D.anuncios.filter(x => x.id !== anuncioId); guardar(); ir("inicio");
+}
+function apagarTudo(){
+  if(!confirm("Isto apaga TUDO o que está guardado neste telemóvel. Tens a certeza?")) return;
+  if(!confirm("Mesmo? Não há como recuperar.")) return;
+  D = JSON.parse(JSON.stringify(VAZIO)); guardar(); pilha = []; ir("entrada");
+}
+function exportar(){
+  const dados = JSON.stringify({ vila:VILA, exportado:hoje(), utilizador:D.eu, anuncios:D.anuncios, trocas:D.trocas }, null, 2);
+  const b = new Blob([dados], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(b);
+  a.download = "troca-da-terra-" + new Date().toISOString().slice(0,10) + ".json";
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+}
+function estrelas(n){ document.querySelectorAll("#est button").forEach((b,i)=>b.classList.toggle("on", i<n)); }
+
+/* ---------------------------------------------------------- auxiliares -- */
+function escapar(s){ return String(s==null?"":s).replace(/[&<>"']/g, c =>
+  ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+function cartaoAnuncio(a){ return `
+  <div class="cartao clicavel" onclick="ir('anuncio',{anuncio:${a.id}})">
+    <div class="linha">
+      <div class="foto">${a.fotos && a.fotos.length ? `<img src="${a.fotos[0]}">` : emojiCat(a.categoria)}</div>
+      <div style="flex:1">
+        <p class="titulo">${escapar(a.titulo)}</p>
+        <p class="meta">${escapar(a.quantidade)} ${escapar(a.unidade)} · ${escapar(a.freguesia)}</p>
+        <p class="meta">${escapar(a.dono)} ${a.verificado?'<span class="verificado">✔</span>':''}${a.porModerador?' <span class="et">com ajuda</span>':''}</p>
+        <p class="quer">Quer: <b>${escapar(a.quer)}</b></p>
+        ${a.estado!=="publicado"?`<span class="et trigo">${a.estado}</span>`:""}
+      </div>
+    </div>
+  </div>`; }
+
+function listaFiltrada(q, cat, fre){
+  const r = D.anuncios.filter(a =>
+    a.estado === "publicado" &&
+    (cat === "Todas" || a.categoria === cat) &&
+    (fre === "Todas" || a.freguesia === fre) &&
+    ((a.titulo+" "+a.quer+" "+(a.descricao||"")).toLowerCase().includes(q.toLowerCase())));
+  return r.length ? r.map(cartaoAnuncio).join("")
+    : '<div class="vazio"><span class="ic">🔎</span>Não há nada assim.<br>Experimenta outra palavra.</div>';
+}
+function filtrar(){
+  document.getElementById("resultados").innerHTML = listaFiltrada(
+    document.getElementById("q").value, document.getElementById("cat").value, document.getElementById("fre").value);
+}
+
+/* ------------------------------------------------ funcionar sem internet -- */
+if("serviceWorker" in navigator){
+  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(()=>{}));
+}
+desenhar();
+</script>
+</body>
+</html>

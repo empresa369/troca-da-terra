@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#3d5a3a">
+<title>Troca da Terra — protótipo</title>
+<style>
+:root{
+  --terra:#8a5a33; --campo:#3d5a3a; --campo2:#4f7449; --trigo:#d9a441;
+  --fundo:#faf7f1; --carta:#ffffff; --linha:#e4ddcf;
+  --tx:#231f1a; --mut:#6d655a; --ok:#2f7a4f; --alerta:#b4472a;
+  --r:14px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--fundo); color:var(--tx);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  font-size:18px; line-height:1.55; -webkit-text-size-adjust:100%;
+}
+.app{max-width:520px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;background:var(--fundo)}
+/* topo */
+header.topo{
+  position:sticky;top:0;z-index:20;background:var(--campo);color:#fff;
+  padding:14px 16px;display:flex;align-items:center;gap:12px;
+}
+header.topo h1{font-size:19px;margin:0;font-weight:600;letter-spacing:.01em}
+header.topo .sub{font-size:13px;opacity:.85;display:block;font-weight:400}
+.voltar{background:rgba(255,255,255,.15);border:0;color:#fff;font-size:22px;line-height:1;
+  width:40px;height:40px;border-radius:10px;cursor:pointer}
+/* conteudo */
+main{flex:1;padding:16px 16px 96px}
+h2{font-size:21px;margin:0 0 4px}
+.legenda{color:var(--mut);font-size:15px;margin:0 0 18px}
+/* cartoes */
+.cartao{background:var(--carta);border:1px solid var(--linha);border-radius:var(--r);padding:14px;margin-bottom:14px}
+.cartao.clicavel{cursor:pointer}
+.cartao.clicavel:active{background:#f4efe6}
+.linha{display:flex;gap:12px;align-items:flex-start}
+.foto{width:84px;height:84px;border-radius:10px;flex:0 0 84px;display:flex;align-items:center;justify-content:center;font-size:38px;background:#efe8d9}
+.titulo{font-weight:600;font-size:17px;margin:0 0 2px}
+.meta{color:var(--mut);font-size:14px;margin:0}
+.quer{font-size:14px;margin:6px 0 0}
+.quer b{color:var(--campo)}
+/* etiquetas */
+.et{display:inline-block;font-size:13px;padding:3px 10px;border-radius:999px;background:#eef3ec;color:var(--campo);border:1px solid #d8e3d5;margin:2px 4px 2px 0}
+.et.trigo{background:#fdf4e0;color:#8a6414;border-color:#f0e0bb}
+.et.ok{background:#e9f6ee;color:var(--ok);border-color:#cbe8d7}
+.et.alerta{background:#fbeceb;color:var(--alerta);border-color:#f2d3cf}
+.verificado{color:var(--ok);font-weight:600;font-size:14px}
+/* botoes */
+.btn{display:block;width:100%;padding:16px;border-radius:12px;border:0;font-size:18px;font-weight:600;
+  background:var(--campo);color:#fff;cursor:pointer;margin:10px 0;text-align:center}
+.btn:active{background:var(--campo2)}
+.btn.secundario{background:#fff;color:var(--campo);border:2px solid var(--campo)}
+.btn.terra{background:var(--terra)}
+.btn.perigo{background:#fff;color:var(--alerta);border:2px solid var(--alerta)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-linha{display:flex;gap:10px}
+.btn-linha .btn{margin:10px 0}
+/* formularios */
+label{display:block;font-weight:600;font-size:15px;margin:14px 0 6px}
+input,select,textarea{
+  width:100%;padding:14px;font-size:17px;border:2px solid var(--linha);border-radius:10px;
+  background:#fff;font-family:inherit;color:var(--tx)
+}
+input:focus,select,textarea:focus{outline:3px solid #cddcc9;border-color:var(--campo)}
+textarea{min-height:90px;resize:vertical}
+.ajuda{font-size:14px;color:var(--mut);margin:6px 0 0}
+/* barra de navegacao */
+nav.fundo{
+  position:fixed;bottom:0;left:0;right:0;z-index:20;background:#fff;border-top:1px solid var(--linha);
+  display:flex;max-width:520px;margin:0 auto;padding-bottom:env(safe-area-inset-bottom)
+}
+nav.fundo button{
+  flex:1;border:0;background:none;padding:10px 4px 12px;font-size:12px;color:var(--mut);cursor:pointer;font-family:inherit
+}
+nav.fundo button .ic{display:block;font-size:24px;line-height:1.2}
+nav.fundo button.on{color:var(--campo);font-weight:600}
+/* avisos */
+.aviso{background:#fdf4e0;border:1px solid #f0e0bb;border-radius:12px;padding:12px 14px;font-size:15px;margin:0 0 16px}
+.aviso.forte{background:#fbeceb;border-color:#f2d3cf}
+/* chat */
+.bolha{max-width:80%;padding:11px 14px;border-radius:14px;margin:8px 0;font-size:16px}
+.bolha.eu{background:var(--campo);color:#fff;margin-left:auto;border-bottom-right-radius:4px}
+.bolha.ele{background:#fff;border:1px solid var(--linha);border-bottom-left-radius:4px}
+.hora{font-size:12px;color:var(--mut);margin:2px 4px 10px}
+.hora.eu{text-align:right}
+/* estrelas */
+.estrelas{display:flex;gap:8px;justify-content:center;margin:14px 0}
+.estrelas button{font-size:40px;background:none;border:0;cursor:pointer;filter:grayscale(1);opacity:.4;padding:0}
+.estrelas button.on{filter:none;opacity:1}
+/* diversos */
+.centro{text-align:center}
+.grande{font-size:56px;text-align:center;margin:18px 0 6px}
+.passos{display:flex;gap:6px;margin:0 0 18px}
+.passos i{flex:1;height:6px;border-radius:3px;background:var(--linha)}
+.passos i.on{background:var(--campo)}
+.rodape{font-size:13px;color:var(--mut);text-align:center;padding:18px 8px 0;line-height:1.5}
+.sep{height:1px;background:var(--linha);margin:18px 0}
+.contador{font-size:13px;color:var(--mut);text-align:right;margin-top:4px}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topo">
+    <button class="voltar" id="btnVoltar" onclick="voltar()" style="display:none" aria-label="Voltar">‹</button>
+    <h1 id="tituloTopo">Troca da Terra<span class="sub" id="subTopo">[A NOSSA VILA]</span></h1>
+  </header>
+  <main id="ecra"></main>
+  <nav class="fundo" id="navFundo">
+    <button data-t="inicio" onclick="ir('inicio')"><span class="ic">🏡</span>Início</button>
+    <button data-t="procurar" onclick="ir('procurar')"><span class="ic">🔎</span>Procurar</button>
+    <button data-t="publicar" onclick="ir('publicar')"><span class="ic">➕</span>Publicar</button>
+    <button data-t="trocas" onclick="ir('trocas')"><span class="ic">🤝</span>Trocas</button>
+    <button data-t="perfil" onclick="ir('perfil')"><span class="ic">👤</span>Perfil</button>
+  </nav>
+</div>
+
+<script>
+/* ============================================================
+   PROTÓTIPO — dados FICTÍCIOS, só para ver e clicar.
+   Não há base de dados, não há contas reais, nada é guardado.
+   ============================================================ */
+const EU = { nome:"Rui", localidade:"[A NOSSA VILA]", verificado:true, estrelas:5.0, trocas:3 };
+
+const ANUNCIOS = [
+  { id:1, emoji:"🥚", titulo:"Ovos caseiros", dono:"D. Amélia", verif:true, loc:"Centro da vila",
+    qtd:"3 dúzias", estado:"Frescos, desta semana", quer:"Batata ou couves", dist:"a 300 m", cat:"Ovos",
+    desc:"Galinhas do quintal, soltas. Apanhados de manhã. Levo à porta se for aqui perto." },
+  { id:2, emoji:"🥔", titulo:"Batata da horta", dono:"Sr. Joaquim", verif:true, loc:"Quinta de baixo",
+    qtd:"20 kg", estado:"Colhida em setembro", quer:"Ovos, mel ou ajuda na lenha", dist:"a 1,2 km", cat:"Frutas e legumes",
+    desc:"Batata branca, boa para cozer. Tenho de mais, não quero que se estrague." },
+  { id:3, emoji:"🍯", titulo:"Mel do monte", dono:"Tó da Serra", verif:false, loc:"Serra",
+    qtd:"4 frascos de 500 g", estado:"Colheita deste ano", quer:"Compotas ou azeite", dist:"a 4 km", cat:"Mel",
+    desc:"Mel multifloral, não filtrado. Troco por compotas caseiras ou azeite da região." },
+  { id:4, emoji:"🪵", titulo:"Lenha de pinho", dono:"Manuel", verif:true, loc:"Estrada nova",
+    qtd:"1 carrada", estado:"Seca, cortada em março", quer:"Ajuda na poda ou legumes", dist:"a 2 km", cat:"Lenha",
+    desc:"Já rachada. Quem levar tem de trazer carrinha — não faço transporte." },
+  { id:5, emoji:"🌿", titulo:"Mudas de couve", dono:"D. Amélia", verif:true, loc:"Centro da vila",
+    qtd:"30 mudas", estado:"Prontas a plantar", quer:"Sementes ou ovos", dist:"a 300 m", cat:"Sementes e mudas",
+    desc:"Couve portuguesa. Dou 30, ficam boas se plantadas esta semana." },
+];
+
+const TROCAS = [
+  { id:101, tipo:"recebida", com:"Sr. Joaquim", queroDele:"Batata da horta (10 kg)", ofereco:"Ovos caseiros (2 dúzias)",
+    estado:"aguarda resposta", emoji:"🥔", quando:"ontem" },
+  { id:102, tipo:"enviada", com:"Tó da Serra", queroDele:"Mel do monte (2 frascos)", ofereco:"Compota de abóbora (3 frascos)",
+    estado:"em negociação", emoji:"🍯", quando:"há 2 dias" },
+  { id:103, tipo:"concluida", com:"Manuel", queroDele:"Lenha de pinho", ofereco:"Tarde de poda",
+    estado:"concluída", emoji:"🪵", quando:"semana passada" },
+];
+
+let ecraAtual = "inicio", pilha = [], contexto = {};
+
+/* ---------- navegação ---------- */
+function ir(nome, ctx){
+  if(ctx) contexto = Object.assign({}, contexto, ctx);
+  if(ecraAtual !== nome) pilha.push(ecraAtual);
+  ecraAtual = nome; desenhar();
+  window.scrollTo(0,0);
+}
+function voltar(){ ecraAtual = pilha.pop() || "inicio"; desenhar(); window.scrollTo(0,0); }
+
+const PRINCIPAIS = ["inicio","procurar","publicar","trocas","perfil"];
+
+function desenhar(){
+  const m = document.getElementById("ecra");
+  m.innerHTML = (ECRAS[ecraAtual] || ECRAS.inicio)();
+  document.getElementById("btnVoltar").style.display = PRINCIPAIS.includes(ecraAtual) ? "none" : "block";
+  document.getElementById("navFundo").style.display = PRINCIPAIS.includes(ecraAtual) ? "flex" : "none";
+  document.querySelectorAll("nav.fundo button").forEach(b =>
+    b.classList.toggle("on", b.dataset.t === ecraAtual));
+  const t = TITULOS[ecraAtual] || {t:"Troca da Terra", s:"[A NOSSA VILA]"};
+  document.getElementById("tituloTopo").childNodes[0].nodeValue = t.t;
+  document.getElementById("subTopo").textContent = t.s;
+}
+
+const TITULOS = {
+  inicio:{t:"Troca da Terra", s:"[A NOSSA VILA]"},
+  procurar:{t:"Procurar", s:"o que há na vila"},
+  publicar:{t:"Publicar", s:"o que tens a mais"},
+  trocas:{t:"As minhas trocas", s:"recebidas e enviadas"},
+  perfil:{t:"O meu perfil", s:EU.nome},
+  anuncio:{t:"Anúncio", s:""},
+  propor:{t:"Propor troca", s:"passo 1 de 2"},
+  conversa:{t:"Conversa", s:"sobre esta troca"},
+  confirmar:{t:"Confirmar troca", s:"os dois têm de confirmar"},
+  avaliar:{t:"Avaliar", s:"como correu?"},
+  moderacao:{t:"Moderação local", s:"só para moderadores"},
+};
+
+/* ---------- ecrãs ---------- */
+const ECRAS = {
+
+inicio: () => `
+  <h2>O que há de novo</h2>
+  <p class="legenda">Produtos que vizinhos publicaram nos últimos dias.</p>
+  ${ANUNCIOS.slice(0,4).map(cartaoAnuncio).join("")}
+  <button class="btn terra" onclick="ir('publicar')">➕ Tenho alguma coisa para trocar</button>
+  <p class="rodape">Protótipo com exemplos fictícios.<br>Nada aqui é uma conta ou um produto real.</p>`,
+
+procurar: () => `
+  <label for="q">Procurar</label>
+  <input id="q" placeholder="ex.: ovos, batata, lenha…" oninput="filtrar()">
+  <label for="cat">Categoria</label>
+  <select id="cat" onchange="filtrar()">
+    <option>Todas</option><option>Ovos</option><option>Frutas e legumes</option>
+    <option>Mel</option><option>Lenha</option><option>Sementes e mudas</option>
+  </select>
+  <div class="sep"></div>
+  <div id="resultados">${ANUNCIOS.map(cartaoAnuncio).join("")}</div>`,
+
+publicar: () => `
+  <div class="passos"><i class="on"></i><i></i><i></i></div>
+  <h2>O que tens para trocar?</h2>
+  <p class="legenda">Três coisas bastam: o que é, quanto tens, e o que queres em troca.</p>
+  <label for="t">O que é</label>
+  <input id="t" placeholder="ex.: Ovos caseiros">
+  <label for="c">Categoria</label>
+  <select id="c"><option>Ovos</option><option>Frutas e legumes</option><option>Mel</option>
+    <option>Lenha</option><option>Sementes e mudas</option><option>Compotas e conservas</option></select>
+  <label for="qt">Quantidade</label>
+  <div class="linha" style="gap:8px">
+    <input id="qt" placeholder="3" style="flex:1">
+    <select id="un" style="flex:1"><option>dúzias</option><option>kg</option><option>unidades</option>
+      <option>litros</option><option>frascos</option><option>caixas</option></select>
+  </div>
+  <label for="w">O que queres em troca</label>
+  <input id="w" placeholder="ex.: batata, couves, ajuda na horta">
+  <label for="d">Descrição (opcional)</label>
+  <textarea id="d" placeholder="Frescos, apanhados hoje de manhã."></textarea>
+  <label>Fotografias</label>
+  <button class="btn secundario" onclick="alert('No protótipo não há câmara.\\nNa aplicação: até 5 fotos, encolhidas antes de enviar para gastar poucos dados.')">📷 Juntar fotografia</button>
+  <div class="aviso">Publicas em nome próprio. És tu o responsável pelo produto, pela origem e pelo estado em que está.</div>
+  <button class="btn" onclick="ir('publicado')">Publicar na vila</button>`,
+
+publicado: () => `
+  <div class="grande">✅</div>
+  <h2 class="centro">Publicado</h2>
+  <p class="legenda centro">Os vizinhos já podem ver e propor troca.<br>Avisamos-te assim que alguém propuser.</p>
+  <button class="btn" onclick="ir('inicio')">Voltar ao início</button>
+  <button class="btn secundario" onclick="ir('publicar')">Publicar outro</button>`,
+
+trocas: () => `
+  <h2>As minhas trocas</h2>
+  <p class="legenda">Toca numa para ver a conversa e o estado.</p>
+  ${TROCAS.map(t => `
+    <div class="cartao clicavel" onclick="ir('conversa',{troca:${t.id}})">
+      <div class="linha">
+        <div class="foto">${t.emoji}</div>
+        <div style="flex:1">
+          <p class="titulo">${t.com}</p>
+          <p class="meta">Ele dá: ${t.queroDele}</p>
+          <p class="meta">Eu dou: ${t.ofereco}</p>
+          <span class="et ${t.estado==="concluída"?"ok":t.estado==="aguarda resposta"?"trigo":""}">${t.estado}</span>
+          <span class="et">${t.tipo}</span>
+        </div>
+      </div>
+    </div>`).join("")}`,
+
+perfil: () => `
+  <div class="cartao">
+    <div class="linha">
+      <div class="foto">👤</div>
+      <div>
+        <p class="titulo">${EU.nome}</p>
+        <p class="meta">${EU.localidade}</p>
+        <p class="verificado">✔ Verificado localmente</p>
+        <p class="meta">${"⭐".repeat(5)} ${EU.estrelas.toFixed(1)} · ${EU.trocas} trocas concluídas</p>
+      </div>
+    </div>
+  </div>
+  <button class="btn secundario" onclick="alert('Protótipo: aqui ficam os teus anúncios.')">Os meus anúncios (2)</button>
+  <button class="btn secundario" onclick="alert('Protótipo: aqui ficam as avaliações que recebeste.')">As minhas avaliações</button>
+  <button class="btn secundario" onclick="ir('moderacao')">🛡️ Moderação local</button>
+  <div class="sep"></div>
+  <button class="btn secundario" onclick="alert('Regras da comunidade, privacidade e termos.\\nNa aplicação são obrigatórios antes de publicar.')">Regras e privacidade</button>
+  <button class="btn perigo" onclick="alert('Protótipo: pedido de cópia dos dados e eliminação da conta (RGPD).')">Apagar a minha conta</button>`,
+
+anuncio: () => { const a = ANUNCIOS.find(x => x.id === contexto.anuncio) || ANUNCIOS[0]; return `
+  <div class="cartao">
+    <div class="foto" style="width:100%;height:170px;font-size:80px">${a.emoji}</div>
+    <h2 style="margin-top:12px">${a.titulo}</h2>
+    <p class="meta">${a.qtd} · ${a.estado}</p>
+    <p style="margin:12px 0 0">${a.desc}</p>
+    <div class="sep"></div>
+    <p class="meta">De <b>${a.dono}</b> ${a.verif?'<span class="verificado">✔ verificado</span>':'<span class="et alerta">ainda não verificado</span>'}</p>
+    <p class="meta">${a.loc} · ${a.dist}</p>
+    <p class="quer">Quer em troca: <b>${a.quer}</b></p>
+  </div>
+  <div class="aviso">A localização exata não é mostrada. Combinem o local de entrega pela conversa, num sítio onde se sintam à vontade.</div>
+  <button class="btn" onclick="ir('propor',{anuncio:${a.id}})">🤝 Propor uma troca</button>
+  <button class="btn secundario" onclick="alert('Guardado nos favoritos (protótipo).')">☆ Guardar</button>
+  <button class="btn perigo" onclick="alert('Denúncia enviada ao moderador local (protótipo).')">Denunciar este anúncio</button>`; },
+
+propor: () => { const a = ANUNCIOS.find(x => x.id === contexto.anuncio) || ANUNCIOS[0]; return `
+  <div class="passos"><i class="on"></i><i class="on"></i><i></i></div>
+  <h2>Propor troca</h2>
+  <p class="legenda">Queres <b>${a.titulo}</b> de ${a.dono}. O que dás em troca?</p>
+  <label for="of">Escolhe dos teus anúncios</label>
+  <select id="of">
+    <option>Ovos caseiros — 2 dúzias</option>
+    <option>Compota de abóbora — 3 frascos</option>
+    <option>Uma tarde de ajuda na horta</option>
+  </select>
+  <label for="qp">Quanto queres dele</label>
+  <input id="qp" placeholder="ex.: 10 kg">
+  <label for="msg">Mensagem curta</label>
+  <textarea id="msg" placeholder="Boa tarde. Tenho ovos frescos, troco por 10 kg de batata. Posso passar aí amanhã de manhã."></textarea>
+  <div class="aviso">Não escrevas aqui moradas, números de conta nem códigos. A conversa fica dentro da aplicação.</div>
+  <button class="btn" onclick="ir('proposta_enviada')">Enviar proposta</button>`; },
+
+proposta_enviada: () => `
+  <div class="grande">🤝</div>
+  <h2 class="centro">Proposta enviada</h2>
+  <p class="legenda centro">Avisamos-te assim que responderem.<br>Podes falar com a pessoa na conversa.</p>
+  <button class="btn" onclick="ir('conversa',{troca:102})">Ver a conversa</button>
+  <button class="btn secundario" onclick="ir('inicio')">Voltar ao início</button>`,
+
+conversa: () => `
+  <div class="cartao">
+    <p class="titulo">Sr. Joaquim <span class="verificado">✔</span></p>
+    <p class="meta">Ele dá: batata da horta (10 kg)</p>
+    <p class="meta">Eu dou: ovos caseiros (2 dúzias)</p>
+    <span class="et trigo">em negociação</span>
+  </div>
+  <div class="aviso forte">Nunca partilhes dados bancários, códigos ou palavras-passe. Combina a entrega num local onde te sintas seguro.</div>
+  <div class="bolha ele">Boa tarde. Tenho ovos frescos, troco por 10 kg de batata. Posso passar aí amanhã de manhã.</div>
+  <div class="hora">ontem, 18:42</div>
+  <div class="bolha eu">Boa tarde! Por mim está bem. Amanhã das 9h às 12h estou na quinta.</div>
+  <div class="hora eu">ontem, 19:05</div>
+  <div class="bolha ele">Combinado. Levo os ovos numa caixa de cartão.</div>
+  <div class="hora">hoje, 08:10</div>
+  <label for="m">Escrever</label>
+  <textarea id="m" placeholder="A tua mensagem…"></textarea>
+  <button class="btn secundario" onclick="alert('Mensagem enviada (protótipo).')">Enviar mensagem</button>
+  <div class="sep"></div>
+  <button class="btn" onclick="ir('confirmar')">✅ Já trocámos — confirmar</button>
+  <button class="btn perigo" onclick="alert('Troca cancelada (protótipo). Ninguém é avaliado quando se cancela.')">Cancelar troca</button>`,
+
+confirmar: () => `
+  <h2>Confirmar a troca</h2>
+  <p class="legenda">Cada um confirma do seu lado. Só quando os dois confirmarem é que a troca fica concluída.</p>
+  <div class="cartao">
+    <p class="titulo">Eu (${EU.nome})</p>
+    <span class="et ok">✔ vou confirmar agora</span>
+    <div class="sep"></div>
+    <p class="titulo">Sr. Joaquim</p>
+    <span class="et trigo">ainda não confirmou</span>
+  </div>
+  <div class="aviso">Confirma só depois de teres recebido mesmo o produto.</div>
+  <button class="btn" onclick="ir('avaliar')">Confirmo que a troca foi feita</button>`,
+
+avaliar: () => `
+  <h2>Como correu?</h2>
+  <p class="legenda">A avaliação só é possível depois de uma troca concluída.</p>
+  <div class="estrelas" id="est">
+    ${[1,2,3,4,5].map(n=>`<button onclick="estrelas(${n})" aria-label="${n} estrelas">⭐</button>`).join("")}
+  </div>
+  <label>O que correu bem</label>
+  <div>
+    <span class="et">produto conforme</span><span class="et">pessoa pontual</span>
+    <span class="et">boa comunicação</span><span class="et">troca segura</span>
+  </div>
+  <label for="cm">Comentário (opcional)</label>
+  <textarea id="cm" placeholder="Batata muito boa, pessoa impecável."></textarea>
+  <p class="ajuda">Os comentários passam pelo moderador local antes de aparecerem.</p>
+  <button class="btn" onclick="ir('avaliado')">Enviar avaliação</button>`,
+
+avaliado: () => `
+  <div class="grande">🌾</div>
+  <h2 class="centro">Obrigado</h2>
+  <p class="legenda centro">A troca ficou registada e a avaliação foi enviada.<br>É assim que se constrói confiança na vila.</p>
+  <button class="btn" onclick="ir('inicio')">Voltar ao início</button>`,
+
+moderacao: () => `
+  <div class="aviso">Este ecrã só aparece a moderadores locais. Não mostra palavras-passe e não permite concluir trocas por outras pessoas.</div>
+  <h2>Pedidos de ajuda</h2>
+  <div class="cartao">
+    <p class="titulo">D. Rosa, 74 anos</p>
+    <p class="meta">Quer publicar nabos mas não consegue tirar a fotografia.</p>
+    <button class="btn secundario" onclick="alert('Publicação assistida: só com o consentimento da pessoa, e fica registado quem ajudou.')">Ajudar a publicar</button>
+  </div>
+  <h2>Validar vizinhos</h2>
+  <div class="cartao">
+    <p class="titulo">Tó da Serra</p>
+    <p class="meta">Pediu para ser verificado. Conheces esta pessoa?</p>
+    <div class="btn-linha">
+      <button class="btn" onclick="alert('Verificado localmente (protótipo).')">Sim, conheço</button>
+      <button class="btn secundario" onclick="alert('Fica por verificar.')">Não</button>
+    </div>
+  </div>
+  <h2>Denúncias</h2>
+  <div class="cartao">
+    <p class="titulo">Anúncio: «Remédio para as vacas»</p>
+    <p class="meta">1 denúncia — produto não permitido.</p>
+    <div class="btn-linha">
+      <button class="btn perigo" onclick="alert('Anúncio removido e decisão registada (protótipo).')">Remover</button>
+      <button class="btn secundario" onclick="alert('Mantido. A decisão fica registada.')">Manter</button>
+    </div>
+  </div>
+  <p class="rodape">Uma denúncia sozinha nunca bloqueia ninguém automaticamente.<br>Há sempre uma pessoa a decidir.</p>`,
+};
+
+/* ---------- auxiliares ---------- */
+function cartaoAnuncio(a){ return `
+  <div class="cartao clicavel" onclick="ir('anuncio',{anuncio:${a.id}})">
+    <div class="linha">
+      <div class="foto">${a.emoji}</div>
+      <div style="flex:1">
+        <p class="titulo">${a.titulo}</p>
+        <p class="meta">${a.qtd} · ${a.dist}</p>
+        <p class="meta">${a.dono} ${a.verif?'<span class="verificado">✔</span>':''}</p>
+        <p class="quer">Quer: <b>${a.quer}</b></p>
+      </div>
+    </div>
+  </div>`; }
+
+function filtrar(){
+  const q = (document.getElementById("q").value || "").toLowerCase();
+  const c = document.getElementById("cat").value;
+  const r = ANUNCIOS.filter(a =>
+    (c === "Todas" || a.cat === c) &&
+    (a.titulo.toLowerCase().includes(q) || a.quer.toLowerCase().includes(q) || a.desc.toLowerCase().includes(q)));
+  document.getElementById("resultados").innerHTML =
+    r.length ? r.map(cartaoAnuncio).join("") : '<p class="legenda">Não há nada com esse nome. Experimenta outra palavra.</p>';
+}
+
+function estrelas(n){
+  document.querySelectorAll("#est button").forEach((b,i)=>b.classList.toggle("on", i < n));
+}
+
+desenhar();
+</script>
+</body>
+</html>

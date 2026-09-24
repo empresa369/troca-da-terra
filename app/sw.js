@@ -1,6 +1,6 @@
 /* Troca da Terra — funciona sem internet. Guarda os ficheiros da app;
    os dados das pessoas ficam no localStorage, nunca aqui. */
-const CACHE = "troca-da-terra-v1";
+const CACHE = "troca-da-terra-v2";
 const FICHEIROS = ["./", "./index.html", "./manifest.json", "./icone-192.png", "./icone-512.png"];
 
 self.addEventListener("install", e => {

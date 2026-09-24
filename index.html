@@ -121,11 +121,12 @@ const UNIDADES = ["kg","dúzias","unidades","litros","frascos","caixas","sacos",
 const CHAVE = "troca-da-terra-v1";
 
 /* ---------------------------------------------------------------- estado -- */
-const VAZIO = { eu:null, anuncios:[], trocas:[], seq:1 };
+const VAZIO = { eu:null, anuncios:[], trocas:[], avaliacoes:[], denuncias:[], seq:1 };
 let D = carregar();
 
 function carregar(){
-  try{ const s = localStorage.getItem(CHAVE); if(s) return Object.assign({}, VAZIO, JSON.parse(s)); }
+  try{ const s = localStorage.getItem(CHAVE);
+       if(s) return Object.assign(JSON.parse(JSON.stringify(VAZIO)), JSON.parse(s)); }
   catch(e){ console.warn("sem armazenamento", e); }
   return JSON.parse(JSON.stringify(VAZIO));
 }
@@ -140,6 +141,12 @@ function quando(iso){
   return d <= 0 ? "hoje" : d === 1 ? "ontem" : "há " + d + " dias";
 }
 const emojiCat = n => (CATEGORIAS.find(c => c.n === n) || {e:"🧺"}).e;
+function reputacao(nome){
+  const v = D.avaliacoes.filter(x => x.sobre === nome);
+  if(!v.length) return null;
+  return { n:v.length, media:v.reduce((t,x)=>t+x.estrelas,0)/v.length };
+}
+const emEstrelas = n => "⭐".repeat(Math.max(1, Math.min(5, Math.round(n))));
 
 /* ------------------------------------------------------------- navegação -- */
 let ecraAtual = "inicio", pilha = [], ctx = {};
@@ -157,6 +164,8 @@ const TITULOS = {
   anuncio:{t:"Anúncio", s:""}, propor:{t:"Propor troca", s:""}, conversa:{t:"Conversa", s:"sobre esta troca"},
   confirmar:{t:"Confirmar troca", s:"os dois têm de confirmar"}, avaliar:{t:"Avaliar", s:"como correu?"},
   moderacao:{t:"Moderação local", s:"só para moderadores"}, regras:{t:"Regras", s:"e privacidade"},
+  denunciar:{t:"Denunciar", s:"o moderador local vê isto"}, denunciado:{t:"Denunciar", s:""},
+  avaliado:{t:"Avaliar", s:""},
 };
 function desenhar(){
   if(!D.eu && ecraAtual !== "entrada"){ ecraAtual = "entrada"; pilha = []; }
@@ -262,6 +271,7 @@ anuncio: () => { const a = D.anuncios.find(x => x.id === ctx.anuncio); if(!a) re
     ${a.fotos && a.fotos.length > 1 ? `<div class="miniaturas">${a.fotos.slice(1).map(f=>`<img src="${f}">`).join("")}</div>` : ""}
     <div class="sep"></div>
     <p class="meta">De <b>${escapar(a.dono)}</b> ${a.verificado ? '<span class="verificado">✔ verificado</span>' : '<span class="et alerta">ainda não verificado</span>'}</p>
+    ${(() => { const r = reputacao(a.dono); return r ? `<p class="meta">${emEstrelas(r.media)} ${r.media.toFixed(1)} · ${r.n} troca(s) avaliada(s)</p>` : `<p class="meta">Ainda sem avaliações</p>`; })()}
     <p class="meta">${escapar(a.freguesia)} · ${VILA}</p>
     <p class="quer">Quer em troca: <b>${escapar(a.quer)}</b></p>
     <span class="et">${emojiCat(a.categoria)} ${escapar(a.categoria)}</span>
@@ -272,7 +282,7 @@ anuncio: () => { const a = D.anuncios.find(x => x.id === ctx.anuncio); if(!a) re
     <button class="btn perigo" onclick="apagarAnuncio(${a.id})">Apagar este anúncio</button>`
   : `
     <button class="btn" onclick="ir('propor',{anuncio:${a.id}})">🤝 Propor uma troca</button>
-    <button class="btn perigo" onclick="alert('Obrigado. O moderador local vai ver esta denúncia.')">Denunciar</button>`}`;
+    <button class="btn perigo" onclick="ir('denunciar',{anuncio:${a.id}})">Denunciar</button>`}`;
 },
 
 propor: () => { const a = D.anuncios.find(x => x.id === ctx.anuncio); if(!a) return "";
@@ -304,6 +314,7 @@ trocas: () => D.trocas.length ? `
           <p class="meta">Ele dá: ${escapar(t.pedido)}</p>
           <p class="meta">Eu dou: ${escapar(t.oferta)}</p>
           <span class="et ${t.estado==="concluída"?"ok":t.estado==="enviada"?"trigo":""}">${t.estado}</span>
+          ${(() => { const v = D.avaliacoes.find(x=>x.troca===t.id); return v ? `<span class="et ok">${emEstrelas(v.estrelas)}</span>` : ""; })()}
           <span class="et">${quando(t.criado)}</span>
         </div>
       </div>
@@ -327,7 +338,8 @@ conversa: () => { const t = D.trocas.find(x => x.id === ctx.troca); if(!t) retur
   <button class="btn secundario" onclick="enviarMensagem(${t.id})">Enviar mensagem</button>
   <div class="sep"></div>
   ${t.estado === "concluída"
-    ? `<div class="aviso verde">Troca concluída. Obrigado — é assim que se constrói confiança na vila.</div>`
+    ? `<div class="aviso verde">Troca concluída. Obrigado — é assim que se constrói confiança na vila.</div>
+       <button class="btn" onclick="ir('avaliar',{troca:${t.id}})">${D.avaliacoes.some(v=>v.troca===t.id) ? "Ver a minha avaliação" : "⭐ Avaliar esta troca"}</button>`
     : `<button class="btn" onclick="ir('confirmar',{troca:${t.id}})">✅ Já trocámos — confirmar</button>
        <button class="btn perigo" onclick="cancelarTroca(${t.id})">Cancelar troca</button>`}`;
 },
@@ -346,9 +358,24 @@ confirmar: () => { const t = D.trocas.find(x => x.id === ctx.troca); if(!t) retu
   <button class="btn" onclick="confirmarTroca(${t.id})" ${t.confirmeiEu?"disabled":""}>Confirmo que a troca foi feita</button>`;
 },
 
-avaliar: () => `
+avaliar: () => { const t = D.trocas.find(x => x.id === ctx.troca);
+  if(!t) return `<p class="vazio">Troca não encontrada.</p>`;
+  if(t.estado !== "concluída") return `
+    <div class="aviso">Só se avalia depois de <b>os dois</b> confirmarem a troca.</div>
+    <button class="btn secundario" onclick="ir('trocas')">Ver as minhas trocas</button>`;
+  const ja = D.avaliacoes.find(x => x.troca === t.id);
+  if(ja) return `
+    <div class="aviso verde">Já avaliaste esta troca (${quando(ja.quando)}).</div>
+    <div class="cartao">
+      <p class="titulo">${escapar(ja.sobre)}</p>
+      <p style="font-size:26px;margin:6px 0">${emEstrelas(ja.estrelas)}</p>
+      ${ja.etiquetas.map(e=>`<span class="et ok">${escapar(e)}</span>`).join("")}
+      ${ja.comentario ? `<p style="margin-top:10px">${escapar(ja.comentario)}</p>` : ""}
+    </div>
+    <button class="btn secundario" onclick="ir('trocas')">Ver as minhas trocas</button>`;
+  return `
   <h2>Como correu?</h2>
-  <p class="legenda">Só se avalia depois de uma troca concluída.</p>
+  <p class="legenda">Troca com <b>${escapar(t.com)}</b>. Avalia só o que viveste.</p>
   <div class="estrelas" id="est">${[1,2,3,4,5].map(n=>`<button onclick="estrelas(${n})" aria-label="${n} estrelas">⭐</button>`).join("")}</div>
   <label>O que correu bem</label>
   <div id="etiquetas">
@@ -357,16 +384,21 @@ avaliar: () => `
   <label for="cm">Comentário (opcional)</label>
   <textarea id="cm" placeholder="Castanha muito boa, pessoa impecável."></textarea>
   <p class="ajuda">Os comentários passam pelo moderador local antes de aparecerem.</p>
-  <button class="btn" onclick="ir('avaliado')">Enviar avaliação</button>`,
+  <p id="erroAval" class="erro" style="display:none"></p>
+  <button class="btn" onclick="enviarAvaliacao(${t.id})">Enviar avaliação</button>`;
+},
 
 avaliado: () => `
   <div class="grande">🌾</div>
   <h2 class="centro">Obrigado</h2>
-  <p class="legenda centro">A troca ficou registada.</p>
-  <button class="btn" onclick="ir('inicio')">Voltar ao início</button>`,
+  <p class="legenda centro">A avaliação ficou <b>guardada</b>.<br>Aparece no teu perfil e junto aos anúncios dessa pessoa.</p>
+  <button class="btn" onclick="ir('trocas')">Ver as minhas trocas</button>
+  <button class="btn secundario" onclick="ir('inicio')">Voltar ao início</button>`,
 
 perfil: () => { const meus = D.anuncios.filter(a => a.dono === D.eu.nome);
-  const feitas = D.trocas.filter(t => t.estado === "concluída").length; return `
+  const feitas = D.trocas.filter(t => t.estado === "concluída").length;
+  const fiz = D.avaliacoes.filter(v => v.autor === D.eu.nome);
+  const porVer = D.denuncias.filter(d => d.estado === "por ver").length; return `
   <div class="cartao">
     <div class="linha">
       <div class="foto">👤</div>
@@ -374,18 +406,47 @@ perfil: () => { const meus = D.anuncios.filter(a => a.dono === D.eu.nome);
         <p class="titulo">${escapar(D.eu.nome)}</p>
         <p class="meta">${escapar(D.eu.freguesia)} · ${VILA}</p>
         ${D.eu.moderador ? '<p class="verificado">🛡️ Moderador local</p>' : ''}
-        <p class="meta">${meus.length} anúncio(s) · ${feitas} troca(s) concluída(s)</p>
+        <p class="meta">${meus.length} anúncio(s) · ${feitas} troca(s) concluída(s) · ${fiz.length} avaliação(ões) feita(s)</p>
       </div>
     </div>
   </div>
   ${meus.length ? meus.map(cartaoAnuncio).join("") : '<p class="legenda">Ainda não publicaste nada.</p>'}
+  ${fiz.length ? `<div class="sep"></div><h2>Avaliações que fiz</h2>${fiz.map(v => `
+    <div class="cartao">
+      <p class="titulo">${escapar(v.sobre)}</p>
+      <p style="font-size:22px;margin:4px 0">${emEstrelas(v.estrelas)}</p>
+      ${v.etiquetas.map(e => `<span class="et ok">${escapar(e)}</span>`).join("")}
+      ${v.comentario ? `<p style="margin:8px 0 0">${escapar(v.comentario)}</p>` : ""}
+      <p class="meta">${quando(v.quando)}</p>
+    </div>`).join("")}` : ""}
   <div class="sep"></div>
   <button class="btn secundario" onclick="exportar()">💾 Guardar cópia do que recolhi</button>
   <p class="ajuda">Descarrega um ficheiro com tudo o que está neste telemóvel, para não se perder quando passarmos à aplicação a sério.</p>
-  <button class="btn secundario" onclick="ir('moderacao')">🛡️ Moderação local</button>
+  <button class="btn secundario" onclick="ir('moderacao')">🛡️ Moderação local${porVer ? " · " + porVer + " denúncia(s) por ver" : ""}</button>
   <button class="btn secundario" onclick="ir('regras')">Regras e privacidade</button>
   <button class="btn perigo" onclick="apagarTudo()">Apagar tudo deste telemóvel</button>`;
 },
+
+denunciar: () => { const a = D.anuncios.find(x => x.id === ctx.anuncio);
+  if(!a) return `<p class="vazio">Anúncio não encontrado.</p>`;
+  return `
+  <h2>Denunciar anúncio</h2>
+  <p class="legenda">«${escapar(a.titulo)}», de ${escapar(a.dono)}.</p>
+  <label for="dm">Qual é o problema</label>
+  <select id="dm">${["Não se troca aqui (proibido nas regras)","A descrição não é verdade","A pessoa não é de cá","Já não existe ou já foi trocado","Falta de respeito","Outro motivo"].map(m=>`<option>${m}</option>`).join("")}</select>
+  <label for="dc">Explica em duas linhas</label>
+  <textarea id="dc" placeholder="O que se passou. Sem acusar sem provas."></textarea>
+  <div class="aviso">Uma denúncia sozinha nunca bloqueia ninguém. Fica registada para o moderador local ver e falar com as pessoas.</div>
+  <p id="erroDen" class="erro" style="display:none"></p>
+  <button class="btn perigo" onclick="enviarDenuncia(${a.id})">Enviar denúncia</button>
+  <button class="btn secundario" onclick="voltar()">Afinal não</button>`;
+},
+
+denunciado: () => `
+  <div class="grande">🛡️</div>
+  <h2 class="centro">Denúncia registada</h2>
+  <p class="legenda centro">O moderador local vê-a no ecrã de Moderação.<br>Ninguém é bloqueado automaticamente.</p>
+  <button class="btn" onclick="ir('inicio')">Voltar ao início</button>`,
 
 moderacao: () => `
   <div class="aviso">Este ecrã é para os moderadores locais. Não mostra palavras-passe e não permite concluir trocas por outras pessoas.</div>
@@ -406,6 +467,20 @@ moderacao: () => `
   <div class="sep"></div>
   <h2>Verificados</h2>
   <p class="legenda">${D.anuncios.filter(a=>a.verificado).length} anúncio(s) de pessoas conhecidas.</p>
+  <div class="sep"></div>
+  <h2>Denúncias</h2>
+  ${D.denuncias.length ? D.denuncias.map(d => `
+    <div class="cartao">
+      <p class="titulo">${escapar(d.titulo)}</p>
+      <p class="meta">de ${escapar(d.sobre)} · denunciado por ${escapar(d.por)} · ${quando(d.quando)}</p>
+      <span class="et ${d.estado === "resolvida" ? "ok" : "alerta"}">${d.estado}</span>
+      <p style="margin:8px 0 0"><b>${escapar(d.motivo)}</b></p>
+      <p style="margin:4px 0 0">${escapar(d.texto)}</p>
+      ${d.estado === "por ver"
+        ? `<button class="btn secundario" onclick="resolverDenuncia(${d.id})">Já falei com as pessoas — marcar resolvida</button>`
+        : `<p class="meta">Resolvida por ${escapar(d.resolvidaPor)} ${quando(d.resolvidaEm)}</p>`}
+    </div>`).join("")
+   : `<p class="legenda">Nenhuma denúncia. Ainda bem.</p>`}
   <p class="rodape">Uma denúncia sozinha nunca bloqueia ninguém.<br>Há sempre uma pessoa a decidir.</p>`,
 
 regras: () => `
@@ -528,7 +603,7 @@ function enviarMensagem(trocaId){
 function confirmarTroca(trocaId){
   const t = D.trocas.find(x => x.id === trocaId); if(!t) return;
   t.confirmeiEu = true;
-  if(t.confirmouEle){ t.estado = "concluída"; guardar(); ir("avaliar"); }
+  if(t.confirmouEle){ t.estado = "concluída"; guardar(); ir("avaliar", {troca:t.id}); }
   else { t.estado = "à espera do outro"; guardar(); desenhar();
     alert("Confirmado do teu lado.\nA troca fica concluída quando " + t.com + " também confirmar."); }
 }
@@ -550,7 +625,8 @@ function apagarTudo(){
   D = JSON.parse(JSON.stringify(VAZIO)); guardar(); pilha = []; ir("entrada");
 }
 function exportar(){
-  const dados = JSON.stringify({ vila:VILA, exportado:hoje(), utilizador:D.eu, anuncios:D.anuncios, trocas:D.trocas }, null, 2);
+  const dados = JSON.stringify({ vila:VILA, exportado:hoje(), utilizador:D.eu, anuncios:D.anuncios,
+    trocas:D.trocas, avaliacoes:D.avaliacoes, denuncias:D.denuncias }, null, 2);
   const b = new Blob([dados], {type:"application/json"});
   const a = document.createElement("a");
   a.href = URL.createObjectURL(b);
@@ -559,6 +635,35 @@ function exportar(){
   setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
 }
 function estrelas(n){ document.querySelectorAll("#est button").forEach((b,i)=>b.classList.toggle("on", i<n)); }
+function enviarAvaliacao(trocaId){
+  const t = D.trocas.find(x => x.id === trocaId); if(!t) return;
+  const err = document.getElementById("erroAval");
+  const n = document.querySelectorAll("#est button.on").length;
+  if(n < 1){ err.textContent = "Toca nas estrelas para dizeres como correu."; err.style.display = "block"; return; }
+  if(D.avaliacoes.some(x => x.troca === t.id)){ desenhar(); return; }
+  D.avaliacoes.unshift({
+    id:id(), troca:t.id, sobre:t.com, autor:D.eu.nome, estrelas:n,
+    etiquetas:[...document.querySelectorAll("#etiquetas .et.sel")].map(e => e.textContent.trim()),
+    comentario:(document.getElementById("cm").value||"").trim(), quando:hoje(),
+  });
+  t.avaliada = true; guardar(); ir("avaliado");
+}
+function enviarDenuncia(anuncioId){
+  const a = D.anuncios.find(x => x.id === anuncioId); if(!a) return;
+  const txt = (document.getElementById("dc").value||"").trim();
+  const err = document.getElementById("erroDen");
+  if(txt.length < 5){ err.textContent = "Escreve o que se passou (pelo menos uma frase)."; err.style.display = "block"; return; }
+  D.denuncias.unshift({
+    id:id(), anuncio:a.id, titulo:a.titulo, sobre:a.dono, por:D.eu.nome,
+    motivo:document.getElementById("dm").value, texto:txt, quando:hoje(), estado:"por ver",
+  });
+  guardar(); ir("denunciado");
+}
+function resolverDenuncia(denId){
+  const d = D.denuncias.find(x => x.id === denId); if(!d) return;
+  d.estado = "resolvida"; d.resolvidaPor = D.eu.nome; d.resolvidaEm = hoje();
+  guardar(); desenhar();
+}
 
 /* ---------------------------------------------------------- auxiliares -- */
 function escapar(s){ return String(s==null?"":s).replace(/[&<>"']/g, c =>

@@ -355,7 +355,11 @@ confirmar: () => { const t = D.trocas.find(x => x.id === ctx.troca); if(!t) retu
     <span class="et ${t.confirmouEle?"ok":"trigo"}">${t.confirmouEle?"✔ confirmou":"ainda não confirmou"}</span>
   </div>
   <div class="aviso">Confirma só depois de teres recebido mesmo o produto.</div>
-  <button class="btn" onclick="confirmarTroca(${t.id})" ${t.confirmeiEu?"disabled":""}>Confirmo que a troca foi feita</button>`;
+  <button class="btn" onclick="confirmarTroca(${t.id})" ${t.confirmeiEu?"disabled":""}>${t.confirmeiEu ? "✔ Já confirmei" : "Confirmo que a troca foi feita"}</button>
+  <div class="sep"></div>
+  <p class="legenda">A troca faz-se cara a cara. Com ${escapar(t.com)} ao teu lado, passa-lhe o telemóvel para confirmar também.</p>
+  <button class="btn secundario" onclick="confirmarOutro(${t.id})" ${t.confirmouEle?"disabled":""}>${t.confirmouEle ? "✔ " + escapar(t.com) + " já confirmou" : "📲 Passar a " + escapar(t.com) + " para confirmar"}</button>
+  <p class="ajuda">Nesta versão os dados ficam só neste telemóvel, por isso a confirmação dos dois faz-se aqui, com as duas pessoas presentes.</p>`;
 },
 
 avaliar: () => { const t = D.trocas.find(x => x.id === ctx.troca);
@@ -605,7 +609,14 @@ function confirmarTroca(trocaId){
   t.confirmeiEu = true;
   if(t.confirmouEle){ t.estado = "concluída"; guardar(); ir("avaliar", {troca:t.id}); }
   else { t.estado = "à espera do outro"; guardar(); desenhar();
-    alert("Confirmado do teu lado.\nA troca fica concluída quando " + t.com + " também confirmar."); }
+    alert("Confirmado do teu lado.\nFalta " + t.com + " confirmar, no botão aqui em baixo."); }
+}
+function confirmarOutro(trocaId){
+  const t = D.trocas.find(x => x.id === trocaId); if(!t) return;
+  if(!confirm(t.com + ", confirmas que esta troca foi mesmo feita?")) return;
+  t.confirmouEle = true;
+  if(t.confirmeiEu){ t.estado = "concluída"; guardar(); ir("avaliar", {troca:t.id}); }
+  else { t.estado = "à espera de ti"; guardar(); desenhar(); }
 }
 function cancelarTroca(trocaId){
   if(!confirm("Cancelar esta troca?")) return;
